@@ -52,11 +52,11 @@ Vector *newVectorByNumber(int number, int length){
 }
 
 /*
- * @Descriptor : Vector构造器。通过一个Vector构造另外一个Vector，新Vector的元素和原Vector的元素相同。
+ * @Desc   : Vector构造器。通过一个Vector构造另外一个Vector，新Vector的元素和原Vector的元素相同。
  * @Param  : ovect, 原始的Vector
- * *Return : 返回新的构建好的Vector
- * @Authro : 卢帅吉
- * @Date   : 2017.11.15
+ * @Return : 返回新的构建好的Vector
+ * @Authro : Shuaiji Lu
+ * @Date   : 2017.11.25
 */
 Vector *newVectorByVector(Vector *ovect){
 	Vector *vector = newVector();

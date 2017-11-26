@@ -9,6 +9,12 @@ static int rowSize(Matrix *self);
 static int colSize(Matrix *self);
 static int totalSize(Matrix *self);
 
+/*
+ * @Desc   : Matrix构造器。分配Matrix空间，装载函数。
+ * @Return : 返回新的构建好的Matrix
+ * @Authro : Shuaiji Lu
+ * @Date   : 2017.11.26
+*/
 Matrix *newMatrix(){
 	Matrix *mat = (Matrix *)malloc(sizeof(Matrix));
 	ZeroMemory(mat, sizeof(Matrix));
@@ -21,6 +27,16 @@ Matrix *newMatrix(){
 	mat->totalSize = totalSize;
 	return mat;
 }
+
+/*
+ * @Desc   : Matrix构造器。生成一个指定大小的矩阵，并且每个矩阵的元素为指定的int值。
+ * @Param  : number, 填充Matrix的每个元素的数据。
+ * @Param  : rows, Matrix的行数
+ * @Param  : cols, Matrix的列数
+ * @Return : 返回新的构建好的Vector
+ * @Authro : Shuaiji Lu
+ * @Date   : 2017.11.26
+*/
 Matrix *newMatrixByNumber(int number, int rows, int cols){
 	Matrix * mat = newMatrix();
 	mat->_mem = (void ***)malloc(sizeof(void **) * rows);
@@ -34,17 +50,49 @@ Matrix *newMatrixByNumber(int number, int rows, int cols){
 	mat->_rowLength = rows;
 	return mat;
 }
+
+/*
+ * @Desc   : 释放Matrix容器空间
+ * @Param  : mat, 需要释放的Matrix实例
+ * @Return : void, 无返回值
+ * @Authro : Shuaiji Lu
+ * @Date   : 2017.11.26
+*/
 void removeMatrix(Matrix *mat){
+	for (int i = 0; i < mat->_rowLength; i++){
+		free(mat->_mem[i]);
+	}
+	free(mat->_mem);
+	free(mat);
 
 }
 
-void *get(Matrix *self, int m, int n){
+/*
+ * @Desc   : 获得矩阵中指定位置的元素
+ * @Param  : *self, 需要获取元素的矩阵
+ * @Param  : m, 指定待获取元素的行
+ * @Param  : n, 指定待获取元素的列
+ * @Return : 返回新的构建好的Vector
+ * @Authro : Shuaiji Lu
+ * @Date   : 2017.11.26
+*/
+static void *get(Matrix *self, int m, int n){
 	if (m >= self->_rowLength || n >= self->_colLength){
 		return NULL;
 	}
 	return self->_mem[m][n];
 }
-void *set(Matrix *self, int m, int n, void *val){
+
+/*
+ * @Desc   : 设置Matrix中指定位置的值
+ * @Param  : *self, 待操作的Matrix
+ * @Param  : m, 指定需要设置的元素的列
+ * @Param  : n, 指定需要设置的元素的行
+ * @Return : 该位置以前的元素
+ * @Authro : Shuaiji Lu
+ * @Date   : 2017.11.26
+*/
+static void *set(Matrix *self, int m, int n, void *val){
 	if (m >= self->_rowLength || n>=self->_colLength){
 		return NULL;
 	}
@@ -53,12 +101,35 @@ void *set(Matrix *self, int m, int n, void *val){
 	return old;
 }
 
-int rowSize(Matrix *self){
+/*
+ * @Desc   : 获取Matrix的行数
+ * @Param  : *self, 待操作的元素
+ * @Return : 返回Matrix的行数
+ * @Authro : Shuaiji Lu
+ * @Date   : 2017.11.26
+*/
+static int rowSize(Matrix *self){
 	return self->_rowLength;
 }
-int colSize(Matrix *self){
+
+/*
+ * @Desc   : 获取Matrix的列数
+ * @Param  : *self, 待操作的元素
+ * @Return : 返回Matrix的列数
+ * @Authro : Shuaiji Lu
+ * @Date   : 2017.11.26
+*/
+static int colSize(Matrix *self){
 	return self->_colLength;
 }
-int totalSize(Matrix *self){
+
+/*
+ * @Desc   : 获取Matrix的总元素数
+ * @Param  : *self, 待操作的元素
+ * @Return : 返回Matrix的总元素数
+ * @Authro : Shuaiji Lu
+ * @Date   : 2017.11.26
+*/
+static int totalSize(Matrix *self){
 	return self->_colLength*self->_rowLength;
 }
