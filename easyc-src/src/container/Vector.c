@@ -1,8 +1,9 @@
 #include <stdlib.h>
+#include <Windows.h>
 #include "Vector.h"
 
 static const INITIAL_CAPACITY = 16;
-static const DEFAULT_LOAD_FACTOR = 0.75;
+static const float DEFAULT_LOAD_FACTOR = 0.75f;
 
 static void * get(Vector *self, int idx);
 static void * set(Vector *self, int idx, void *obj);
@@ -15,21 +16,54 @@ static void resize(Vector *self);
 // 创建Vector容器
 Vector *newVector(){
 	Vector * vector = (Vector *)malloc(sizeof(Vector));
-
+	ZeroMemory(vector, sizeof(Vector));
 	vector->_mem = (void **)malloc(sizeof(void *)*INITIAL_CAPACITY);
 	for (int i = 0; i < INITIAL_CAPACITY; i++){
 		vector->_mem[i] = NULL;
 	}
 	vector->_capacity = INITIAL_CAPACITY;
+	vector->_loadFactor = DEFAULT_LOAD_FACTOR;
 	vector->_size = 0;
 
 	// load function
 	vector->get = get;
+	vector->set = set;
 	vector->add = add;
 	vector->insert = insert;
 	vector->remove = remove;
 	vector->size = size;
 	vector->_resize = resize;
+}
+
+Vector *newVectorByInts(int *ptr, int length){
+	Vector *vector = newVector();
+	for (int i = 0; i < length; i++, ptr++){
+		vector->add(vector, *ptr);
+	}
+	return vector;
+}
+
+Vector *newVectorByNumber(int number, int length){
+	Vector *vector = newVector();
+	for (int i = 0; i < length; i++){
+		vector->add(vector, number);
+	}
+	return vector;
+}
+
+/*
+ * @Descriptor : Vector构造器。通过一个Vector构造另外一个Vector，新Vector的元素和原Vector的元素相同。
+ * @Param  : ovect, 原始的Vector
+ * *Return : 返回新的构建好的Vector
+ * @Authro : 卢帅吉
+ * @Date   : 2017.11.15
+*/
+Vector *newVectorByVector(Vector *ovect){
+	Vector *vector = newVector();
+	for (int i = 0; i < ovect->size(ovect); i++){
+		vector->add(vector, ovect->get(ovect, i));
+	}
+	return vector;
 }
 
 // 只释放容器，里面元素并不会释放
