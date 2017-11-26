@@ -12,5 +12,5 @@
 - [原理](doc/theory.md)
 	- [容器](doc/theory.md)
 	- [算法](doc/theory.md)
-	- [系统功能](doc/theory.md)
+	- [系统](doc/theory.md)
 - [致谢](doc/thanks.md)
