@@ -7,6 +7,9 @@ typedef struct Vector Vector;
 
 // 构造和析构函数
 Vector *newVector();
+Vector *newVectorByInts(int *ptr, int length);
+Vector *newVectorByNumber(int number, int length);
+Vector *newVectorByVector(Vector *ovect);
 void removeVector(Vector *vector);
 
 // 结构定义
