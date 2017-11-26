@@ -6,11 +6,11 @@
 #include <Windows.h>
 #include <fileapi.h>
 
-static int readn(RIO *self, void *userbuf, unsigned int n);
-static int readline(RIO *self, void *userbuf, unsigned int n);
-static int writen(RIO *self, void *userbuf, unsigned int n);
+static int readn(RIO * const self, void *userbuf, unsigned int n);
+static int readline(RIO * const self, void *userbuf, unsigned int n);
+static int writen(RIO * const self, void *userbuf, unsigned int n);
 
-void initRIO(RIO *rio, HANDLE hi, HANDLE ho){
+void initRIO(RIO * const rio, HANDLE hi, HANDLE ho){
 	ZeroMemory(rio, sizeof(RIO));
 
 	rio->_hi = hi;
@@ -28,7 +28,7 @@ void initRIO(RIO *rio, HANDLE hi, HANDLE ho){
 读取指定长度大小的数据到buf中。
 先尝试将缓冲区塞满，然后将缓冲区的数据拷贝到buf中，最后返回读出数据的个数。
 */
-static int basicRead(RIO *rp, char *buf, unsigned int n){
+static int basicRead(RIO * const rp, char *buf, unsigned int n){
 	if (rp->_unreadSize <= 0){		// 缓冲区数据为空，需要读取数据
 		if (ReadFile(rp->_hi, rp->_memory, sizeof(rp->_memory), &rp->_unreadSize, NULL) == FALSE){
 			// # ERROR #
@@ -50,10 +50,10 @@ static int basicRead(RIO *rp, char *buf, unsigned int n){
 	return cnt;
 }
 
-static int readn(RIO *self, void *userbuf, unsigned int n){
+static int readn(RIO * const self, void *userbuf, unsigned int n){
 
 }
-static int readline(RIO *self, void *userbuf, unsigned int maxlen){
+static int readline(RIO * const self, void *userbuf, unsigned int maxlen){
 	int n = 0;
 	char *bufp = userbuf;
 	for (n = 1; n < maxlen; n++){
@@ -79,6 +79,6 @@ static int readline(RIO *self, void *userbuf, unsigned int maxlen){
 	}
 	return n;
 }
-static int writen(RIO *self, void *userbuf, unsigned int n){
+static int writen(RIO * const self, void *userbuf, unsigned int n){
 
 }

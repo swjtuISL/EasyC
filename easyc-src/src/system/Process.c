@@ -6,12 +6,12 @@
 #include <stdlib.h>
 #include <Windows.h>
 
-static Process *set(Process *self, char *key, char *value);
-static char *get(Process *self, char *key);
-static int start(Process *self, char *path);							// 进程开始，不阻塞。【未完成】
-static int startBlock(Process *self, char *path);						// 进程开始直接阻塞。【未完成】
-static int readline(Process *self, void *userbuf, unsigned int n);		// 读取一行数据，限制行数最大为n，不足一行直接阻塞
-static int readn(Process *self, void *userbuf, unsigned int n);			// 读取指定字节大小的数据，不足则阻塞。【未完成】
+static Process *set(Process * const self, char *key, char *value);
+static char *get(Process * const self, char *key);
+static int start(Process * const self, char *path);							// 进程开始，不阻塞。【未完成】
+static int startBlock(Process * const self, char *path);					// 进程开始直接阻塞。【未完成】
+static int readline(Process * const self, void *userbuf, unsigned int n);	// 读取一行数据，限制行数最大为n，不足一行直接阻塞
+static int readn(Process * const self, void *userbuf, unsigned int n);		// 读取指定字节大小的数据，不足则阻塞。【未完成】
 
 Process * newProcess(){
 	Process * process = (Process *)malloc(sizeof(Process));
@@ -28,11 +28,11 @@ Process * newProcess(){
 	return process;
 }
 
-void removeProcess(Process *p){
+void freeProcess(Process * const p){
 
 }
 
-static int start(Process *self, char *path){
+static int start(Process * const self, char *path){
 	if (self->_isRun){
 		return 0;
 	}
@@ -60,7 +60,7 @@ static int start(Process *self, char *path){
 	return 1;
 }
 
-static int startBlock(Process *self, char *path){
+static int startBlock(Process * const self, char *path){
 	if (start(self, path)){
 		WaitForSingleObject(self->_pHandle, INFINITE);
 		return 1;
@@ -70,18 +70,18 @@ static int startBlock(Process *self, char *path){
 	}
 }
 
-static Process *set(Process *self, char *key, char *value){
+static Process *set(Process * const self, char *key, char *value){
 
 }
 
-static char *get(Process *self, char *key){
+static char *get(Process * const self, char *key){
 
 }
 
-static int readline(Process *self, void *userbuf, unsigned int n){
+static int readline(Process * const self, void *userbuf, unsigned int n){
 	return self->_rio->readline(self->_rio, userbuf, n);
 }
 
-static int readn(Process *self, void *userbuf, unsigned int n){
+static int readn(Process * const self, void *userbuf, unsigned int n){
 
 }

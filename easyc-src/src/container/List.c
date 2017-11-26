@@ -12,7 +12,7 @@ List *newList(){
 	return list;
 }
 
-void removeList(List *list){
+void freeList(List * const list){
 	for (Node *node = list->_head; node != NULL; ){
 		Node *nextnode = node->next;
 		free(node);

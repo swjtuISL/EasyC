@@ -4,10 +4,10 @@
 #include "Stack.h"
 #include "List.h"
 
-static void * pop(Stack *self);
-static void push(Stack *self, void *obj);
-static void * top(Stack *self);
-static int size(Stack *self);
+static void * pop(Stack * const self);
+static void push(Stack * const self, void *obj);
+static void * top(Stack * const self);
+static int size(Stack * const self);
 
 Stack * newStack(){
 	Stack *stack = (Stack *)malloc(sizeof(Stack));
@@ -19,25 +19,25 @@ Stack * newStack(){
 	return stack;
 }
 
-void removeStack(Stack *stack){
-	removeList(stack->_list);
+void freeStack(Stack * const stack){
+	freeList(stack->_list);
 	free(stack);
 }
 
-static void * pop(Stack *self){
+static void * pop(Stack * const self){
 	void * top = self->_list->removeLast(self->_list);
 	return top;
 }
 
-static void push(Stack *self, void *obj){
+static void push(Stack * const self, void *obj){
 
 }
-static void * top(Stack *self){
+static void * top(Stack * const self){
 	void * topObj = self->_list->getLast(self->_list);
 	return topObj;
 }
 
 
-static int size(Stack *self){
+static int size(Stack * const self){
 	return self->_list->_size;
 }

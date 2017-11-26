@@ -13,7 +13,8 @@ typedef struct Entry Entry;
 
 // 构造和析构
 HashMap *newHashMap(unsigned long(*hashFunction)(void *obj));
-void removeHashMap(HashMap *map);
+void freeHashMap(HashMap * const map);
+void removeHashMap(HashMap * const map);
 
 // 定义结构体成员
 struct KVNode{
@@ -34,15 +35,15 @@ struct HashMap{
 	KVNode ** _buckets;		// 桶
 
 	// public(interface)
-	void * (* get)(HashMap *self, void *key);
-	void * (* put)(HashMap *self, void *key, void * value);
-	Vector * (* keys)(HashMap *self);
-	Vector * (*entries)(HashMap *self);
-	int (* size)(HashMap *self);
-	char * (*toString)(HashMap *self);				// 将数据转换为字符串，方便调试【未实现】。
+	void * (*get)(HashMap * const self, void *key);
+	void * (*put)(HashMap * const self, void *key, void * value);
+	Vector * (*keys)(HashMap * const self);
+	Vector * (*entries)(HashMap * const self);
+	int(*size)(HashMap * const self);
+	char * (*toString)(HashMap * const self);				// 将数据转换为字符串，方便调试【未实现】。
 
 	// private
-	void (* _resize)(HashMap *self);
+	void (* _resize)(HashMap * const self);
 
 	// 需要配置的函数，没有配置则采用默认配置
 	unsigned long (* _hash)(void *obj);				// value的hash

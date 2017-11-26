@@ -6,14 +6,21 @@
 static const INITIAL_BUCKETS_LENGTH = 16;
 static const DEFAULT_MAX_AVERAGE_DEEP = 3;
 
-static void * get(HashMap *self, void *key);
-static void * put(HashMap *self, void *key, void * value);
-static int size(HashMap *self);
-static Vector *keys(HashMap *self);
-static Vector *entries(HashMap *self);
-static void resize(HashMap *self);
+static void * get(HashMap * const self, void *key);
+static void * put(HashMap * const self, void *key, void * value);
+static int size(HashMap * const self);
+static Vector *keys(HashMap * const self);
+static Vector *entries(HashMap * const self);
+static void resize(HashMap * const self);
 static unsigned long defaultHash(void *obj);		// key的默认hash处理函数
 
+/*
+* @Desc   : HashMap构造器.构造一个空的hashMap.
+* @Param  : *hashFunction, hash函数, 作用于key上进行.为NULL时认为key为字符串, 并采用easyc默认的hash函数.
+* @Return : 返回新的构建好的HashMap
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
 HashMap *newHashMap( 
 	unsigned long (* hashFunction)(void *obj)		// 配置hash函数
 	){
@@ -40,7 +47,14 @@ HashMap *newHashMap(
 	return map;
 }
 
-void removeHashMap(HashMap *map){
+/*
+* @Desc   : 释放hashMap.仅仅释放容器, 不会释放掉容器中所引用的内存.
+* @Param  : *map, 待释放的map.
+* @Return : 无
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+void freeHashMap(HashMap * const map){
 	for (int i = 0; i < map->_bucketsLength; i++){
 		KVNode *node = map->_buckets[i];
 		while (node!=NULL && node->next != NULL){			// 释放桶中链表
@@ -55,8 +69,26 @@ void removeHashMap(HashMap *map){
 	map->_buckets = NULL;
 	free(map);
 }
+/*
+* @Desc   : 释放hashMap.会释放掉容器中所引用到的内存.其中包括通过keys, entries返回的Vector空间.
+* @Param  : *map, 待释放的map.
+* @Return : 无
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+void removeHashMap(HashMap * const map){
 
-static void * get(HashMap *self, void *key){
+}
+
+/*
+* @Desc   : 获取hashmap中key所对应的val.
+* @Param  : *self, 待操作的hashMap.
+* @Param  : *key, 获取该key对应的val.
+* @Return : 返回key对应的val.
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+static void * get(HashMap * const self, void *key){
 	int idx = self->_hash(key) % self->_bucketsLength;
 
 	for (KVNode *node = self->_buckets[idx]; node != NULL; node = node->next){
@@ -69,9 +101,15 @@ static void * get(HashMap *self, void *key){
 }
 
 /*
-
+* @Desc   : 设置hashmap中key所对应的val.若不存在该key则添加key, 若key已经存在则覆盖key所对应的val.
+* @Param  : *self, 待操作的hashMap.
+* @Param  : *key, 获取该key对应的val.
+* @Param  : *value, 设置key的值为value.
+* @Return : 返回key之前所对应的val.
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
 */
-static void * put(HashMap *self, void *key, void * value){
+static void * put(HashMap * const self, void *key, void * value){
 	int idx = 0;
 	KVNode *bucketop = NULL;
 
@@ -98,12 +136,64 @@ static void * put(HashMap *self, void *key, void * value){
 }
 
 /*
-
+* @Desc   : 返回HashMap中的kv对个数.
+* @Param  : *self, 待操作的hashMap.
+* @Return : 无
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
 */
-static void resize(HashMap *self){
-	float averageDeep = (float)(self->_size+1) / self->_bucketsLength;
+static int size(HashMap * const self){
+	return self->_size;
+}
+
+/*
+* @Desc   : 以Vector的形式返回HashMap中所有的key.
+* @Param  : *self, 待操作的hashMap.
+* @Return : 无
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+static Vector *keys(HashMap * const self){
+	Vector *vector = newVector();
+	for (int i = 0; i < self->_bucketsLength; i++){
+		for (KVNode *node = self->_buckets[i]; node != NULL; node = node->next){
+			vector->add(vector, node->key);
+		}
+	}
+	return vector;
+}
+
+/*
+* @Desc   : 以Vector的形式返回HashMap中所有的kv对.
+* @Param  : *self, 待操作的hashMap.
+* @Return : 无
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+static Vector *entries(HashMap * const self){
+	Vector *vector = newVector();
+	for (int i = 0; i < self->_bucketsLength; i++){
+		for (KVNode *node = self->_buckets[i]; node != NULL; node = node->next){
+			Entry *entry = (Entry *)malloc(sizeof(Entry));
+			entry->key = node->key;
+			entry->value = node->value;
+			vector->add(vector, entry);
+		}
+	}
+	return vector;
+}
+
+/*
+* @Desc   : 对桶进行扩容操作.当添加一个kv对时, 桶的平均深度大于maxAverageDeep时, 将会对桶进行扩容操作.
+* @Param  : *self, 待操作的hashMap.
+* @Return : 无
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+static void resize(HashMap * const self){
+	float averageDeep = (float)(self->_size + 1) / self->_bucketsLength;
 	if (averageDeep < self->_maxAverageDeep){
-		return ;
+		return;
 	}
 	// 新的桶和桶大小
 	int newBucketsLength = self->_bucketsLength * 2;
@@ -127,37 +217,13 @@ static void resize(HashMap *self){
 	self->_bucketsLength = newBucketsLength;
 }
 
-
 /*
-
+* @Desc   : 对字符串的默认hash处理.
+* @Param  : *obj, 应为字符串首地址.
+* @Return : 返回对应的hash值.
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
 */
-static int size(HashMap *self){
-	return self->_size;
-}
-
-static Vector *keys(HashMap *self){
-	Vector *vector = newVector();
-	for (int i = 0; i < self->_bucketsLength; i++){
-		for (KVNode *node = self->_buckets[i]; node != NULL; node = node->next){
-			vector->add(vector, node->key);
-		}
-	}
-	return vector;
-}
-
-static Vector *entries(HashMap *self){
-	Vector *vector = newVector();
-	for (int i = 0; i < self->_bucketsLength; i++){
-		for (KVNode *node = self->_buckets[i]; node != NULL; node = node->next){
-			Entry *entry = (Entry *)malloc(sizeof(Entry));
-			entry->key = node->key;
-			entry->value = node->value;
-			vector->add(vector, entry);
-		}
-	}
-	return vector;
-}
-
 static unsigned long defaultHash(void *obj){
 	char *s = (char *)obj;
 	unsigned long val = 0;

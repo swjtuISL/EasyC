@@ -4,6 +4,7 @@
 struct Vector;
 typedef struct Vector Vector;
 
-void * funWrapperInts(void *(*fun)(Vector *vector), int args, ...);
+void * funWrapperInts(void *(*fun)(Vector *vector), int length, ...);
+void * funWrapperPtrs(void *(*fun)(Vector *vector), int length, ...);
 
 #endif

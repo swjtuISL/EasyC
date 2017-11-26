@@ -5,15 +5,20 @@
 static const INITIAL_CAPACITY = 16;
 static const float DEFAULT_LOAD_FACTOR = 0.75f;
 
-static void * get(Vector *self, int idx);
-static void * set(Vector *self, int idx, void *obj);
-static void add(Vector *self, void *obj);
-static void * remove(Vector *self, int idx);
-static void insert(Vector *self, int idx, void *obj);
-static int size(Vector *self);
-static void resize(Vector *self);
+static void * get(Vector * const self, int idx);
+static void * set(Vector * const self, int idx, void *obj);
+static void add(Vector * const self, void *obj);
+static void * remove(Vector * const self, int idx);
+static void insert(Vector * const self, int idx, void *obj);
+static int size(Vector * const self);
+static void resize(Vector * const self);
 
-// 创建Vector容器
+/*
+* @Desc   : Vector构造器。构造一个无元素的Vector实例。
+* @Return : 返回新的构建好的Vector
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
 Vector *newVector(){
 	Vector * vector = (Vector *)malloc(sizeof(Vector));
 	ZeroMemory(vector, sizeof(Vector));
@@ -35,6 +40,14 @@ Vector *newVector(){
 	vector->_resize = resize;
 }
 
+/*
+* @Desc   : Vector构造器.通过整数数组的首地址和长度, 构造一个Vector.
+* @Param  : *ptr, 数组的首元素地址
+* @Param  : length, 数组长度
+* @Return : 返回新的构建好的Vector
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
 Vector *newVectorByInts(int *ptr, int length){
 	Vector *vector = newVector();
 	for (int i = 0; i < length; i++, ptr++){
@@ -43,6 +56,14 @@ Vector *newVectorByInts(int *ptr, int length){
 	return vector;
 }
 
+/*
+* @Desc   : Vector构造器.构造一个长度为length,所有元素为整数number的Vector.
+* @Param  : number, 填充Vector的数值.
+* @Param  : length, 填充的长度.
+* @Return : 返回新的构建好的Vector.
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
 Vector *newVectorByNumber(int number, int length){
 	Vector *vector = newVector();
 	for (int i = 0; i < length; i++){
@@ -52,13 +73,13 @@ Vector *newVectorByNumber(int number, int length){
 }
 
 /*
- * @Desc   : Vector构造器。通过一个Vector构造另外一个Vector，新Vector的元素和原Vector的元素相同。
- * @Param  : ovect, 原始的Vector
- * @Return : 返回新的构建好的Vector
- * @Authro : Shuaiji Lu
+ * @Desc   : Vector构造器.通过一个Vector构造另外一个Vector, 新Vector的元素和原Vector的元素相同.
+ * @Param  : ovect, 原始的Vector.
+ * @Return : 返回新的构建好的Vector.
+ * @Authro : 卢帅吉
  * @Date   : 2017.11.25
 */
-Vector *newVectorByVector(Vector *ovect){
+Vector *newVectorByVector(Vector * const ovect){
 	Vector *vector = newVector();
 	for (int i = 0; i < ovect->size(ovect); i++){
 		vector->add(vector, ovect->get(ovect, i));
@@ -66,21 +87,58 @@ Vector *newVectorByVector(Vector *ovect){
 	return vector;
 }
 
-// 只释放容器，里面元素并不会释放
-void removeVector(Vector *vector){
+/*
+* @Desc   : 释放Vector容器, 只释放容器并不释放其中的指针所指向的内存.
+* @Param  : *vector, 待释放的Vector容器
+* @Return : 无
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+void freeVector(Vector * const vector){
 	free(vector->_mem);
 	vector->_mem = NULL;
 	free(vector);
 }
 
-static void * get(Vector *self, int idx){
+/*
+* @Desc   : 释放所有的Vector, 值释放这些Vector容器, 并不释放其中指针所指向的内存.
+* @Param  : vector, vector中的元素为待释放的vector实例.
+* @Return : 无
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+void freeAllVector(Vector * const vector){
+	for (int i = 0; i < vector->_size; i++){
+		freeVector(vector->get(vector, i));
+	}
+}
+
+/*
+* @Desc   : 获得指定索引位置处的元素.
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 获得该索引处的元素.
+* @Return : 索引处的元素.
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+static void * get(Vector * const self, int idx){
 	if (idx >= self->_size){
 		return NULL;
 	}
 	return self->_mem[idx];
 }
 
-static void * set(Vector *self, int idx, void *obj){
+
+/*
+* @Desc   : 给指定位置进行赋值, 返回该位置原先的元素.
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 待赋值的位置.
+* @Param  : *obj, 赋值到vector的元素.
+* @Return : 返回新的构建好的Vector
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+static void * set(Vector * const self, int idx, void *obj){
 	if (idx >= self->_size){
 		return NULL;
 	}
@@ -89,13 +147,29 @@ static void * set(Vector *self, int idx, void *obj){
 	return old;
 }
 
-static void add(Vector *self, void *obj){
+/*
+* @Desc   : 在末尾添加一格新元素.
+* @Param  : *self, 待操作的vector.
+* @Param  : length, 填充的长度.
+* @Return : 无
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+static void add(Vector * const self, void *obj){
 	self->_resize(self);
 	self->_mem[self->_size] = obj;
 	self->_size += 1;
 }
 
-static void * remove(Vector *self, int idx){
+/*
+* @Desc   : 删除指定索引位置的元素，将该索引后面的元素往前面移动一格, 并且返回被删除的元素.
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 待删除的索引位置.
+* @Return : 返回被删除的元素.
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+static void * remove(Vector * const self, int idx){
 	if (idx >= self->_size){
 		return NULL;
 	}
@@ -108,7 +182,15 @@ static void * remove(Vector *self, int idx){
 	return old;
 }
 
-static void insert(Vector *self, int idx, void *obj){
+/*
+* @Desc   : 在指定的位置插入一个元素, 该位置后面的所有元素往后面移动一格.
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 在该索引位置插入.
+* @Return : 无
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+static void insert(Vector * const self, int idx, void *obj){
 	if (idx >= self->_size+1){		// 可以插在末尾
 		return NULL;
 	}
@@ -120,12 +202,26 @@ static void insert(Vector *self, int idx, void *obj){
 	self->_size += 1;
 }
 
-static int size(Vector *self){
+/*
+* @Desc   : 得到vector中的元素个数.
+* @Param  : *self, 待操作的vector.
+* @Return : vector中存在的元素个数.
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+static int size(Vector * const self){
 	return self->_size;
 }
 
-static void resize(Vector *self){
-	if (self->_size < self->_capacity * self->_loadFactor){
+/*
+* @Desc   : vector扩容. 当vector中再增加一个元素达到capacity*loadFactor时, 将进行扩容操作.
+* @Param  : *self, 待操作的vector.
+* @Return : 无
+* @Authro : 卢帅吉
+* @Date   : 2017.11.26
+*/
+static void resize(Vector * const self){
+	if ( (self->_size+1) < self->_capacity * self->_loadFactor){
 		return;
 	}
 	int newcap = 2 * self->_capacity;
