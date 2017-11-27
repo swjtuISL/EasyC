@@ -1,8 +1,4 @@
-<p align="left">
-  <img src="https://raw.githubusercontent.com/swjtuISL/EasyC/master/logo.png" width="100px" alt="EasyC logo"/>
-</p>
-
-## 致力于简化Windows环境下的C语言编程
+## EasyC——致力于简化Windows环境下的C语言编程
 Windows环境下的C语言编程存在非常多的困难:
 * 缺乏`容器`和`迭代器`功能。
 	* 没有字典, 可变数组, 字符串, LRU缓存, 链表等数据结构。在面临相关业务时要求程序员自己实现，增加编程难度。
