@@ -1,7 +1,9 @@
 <p align="left">
   <img src="https://raw.githubusercontent.com/swjtuISL/EasyC/master/logo.png" width="100px" alt="EasyC logo"/>
 </p>
------
+
+----------
+
 `EasyC`提供了丰富的API用于简化Windows环境下C语言编程。[这里]()会有一个快速示例。
 
 Windows环境下的C语言编程存在非常多的困难:
