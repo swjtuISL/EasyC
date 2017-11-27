@@ -9,8 +9,8 @@
  * @Param : * fun, 被包装的函数
  * @Param : length, 可变参数长度，位于可变参数的前参数
  * @Return: 返回被包装的函数fun的返回值
- * @Author: 卢帅吉
- * @Date  : 2017.11.26
+ * @Author: Shuaiji Lu
+ * @Date  : 2017/11/26
 */
 void * funWrapperInts(void *(*fun)(Vector *vector), int length, ...){
 	Vector *vector = newVector();

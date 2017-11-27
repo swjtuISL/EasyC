@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <Windows.h>
+
+#include "Vector.h"
+#include "Object.h"
 #include "Matrix.h"
 
 static void *get(Matrix * const self, int m, int n);
@@ -10,15 +13,16 @@ static int colSize(Matrix * const self);
 static int totalSize(Matrix * const self);
 
 /*
-* @Desc   : Matrixæ„é€ å™¨ã€‚åˆ†é…Matrixç©ºé—´ï¼Œè£…è½½å‡½æ•°ã€‚
-* @Return : è¿”å›æ–°çš„æ„å»ºå¥½çš„Matrix
+* @Desc   : Matrix¹¹ÔìÆ÷¡£·ÖÅäMatrix¿Õ¼ä£¬×°ÔØº¯Êı¡£
+* @Return : ·µ»ØĞÂµÄ¹¹½¨ºÃµÄMatrix
 * @Authro : Shuaiji Lu
-* @Date   : 2017.11.26
+* @Date   : 2017/11/26
 */
-Matrix *newMatrix(){
+static Matrix *newMatrix(){
 	Matrix *mat = (Matrix *)malloc(sizeof(Matrix));
 	ZeroMemory(mat, sizeof(Matrix));
-	
+	mat->_relative = newVector();
+
 	// load function
 	mat->get = get;
 	mat->set = set;
@@ -29,21 +33,21 @@ Matrix *newMatrix(){
 }
 
 /*
-* @Desc   : Matrixæ„é€ å™¨ã€‚ç”Ÿæˆä¸€ä¸ªæŒ‡å®šå¤§å°çš„çŸ©é˜µï¼Œå¹¶ä¸”æ¯ä¸ªçŸ©é˜µçš„å…ƒç´ ä¸ºæŒ‡å®šçš„intå€¼ã€‚
-* @Param  : number, å¡«å……Matrixçš„æ¯ä¸ªå…ƒç´ çš„æ•°æ®ã€‚
-* @Param  : rows, Matrixçš„è¡Œæ•°
-* @Param  : cols, Matrixçš„åˆ—æ•°
-* @Return : è¿”å›æ–°çš„æ„å»ºå¥½çš„Vector
+* @Desc   : Matrix¹¹ÔìÆ÷¡£Éú³ÉÒ»¸öÖ¸¶¨´óĞ¡µÄ¾ØÕó£¬²¢ÇÒÃ¿¸ö¾ØÕóµÄÔªËØÎªÖ¸¶¨µÄintÖµ¡£
+* @Param  : number, Ìî³äMatrixµÄÃ¿¸öÔªËØµÄÊı¾İ¡£
+* @Param  : rows, MatrixµÄĞĞÊı
+* @Param  : cols, MatrixµÄÁĞÊı
+* @Return : ·µ»ØĞÂµÄ¹¹½¨ºÃµÄVector
 * @Authro : Shuaiji Lu
-* @Date   : 2017.11.26
+* @Date   : 2017/11/26
 */
 Matrix *newMatrixByNumber(int number, int rows, int cols){
 	Matrix * mat = newMatrix();
-	mat->_mem = (void ***)malloc(sizeof(void **) * rows);
+	mat->_mem = (Object ***)malloc(sizeof(Object **) * rows);
 	for (int i = 0; i < rows; i++){
-		mat->_mem[i] = (void **)malloc(sizeof(void *) * cols);
+		mat->_mem[i] = (Object **)malloc(sizeof(Object *) * cols);
 		for (int j = 0; j < cols; j++){
-			mat->_mem[i][j] = number;
+			mat->_mem[i][j] = simpleObject(number);
 		}
 	}
 	mat->_colLength = cols;
@@ -52,81 +56,86 @@ Matrix *newMatrixByNumber(int number, int rows, int cols){
 }
 
 /*
-* @Desc   : é‡Šæ”¾Matrixå®¹å™¨ç©ºé—´
-* @Param  : *mat, éœ€è¦é‡Šæ”¾çš„Matrixå®ä¾‹
-* @Return : void, æ— è¿”å›å€¼
+* @Desc   : ÊÍ·ÅMatrixÈİÆ÷¿Õ¼ä
+* @Param  : *mat, ĞèÒªÊÍ·ÅµÄMatrixÊµÀı
+* @Return : void, ÎŞ·µ»ØÖµ
 * @Authro : Shuaiji Lu
-* @Date   : 2017.11.26
+* @Date   : 2017/11/26
 */
 void freeMatrix(Matrix * const mat){
 	for (int i = 0; i < mat->_rowLength; i++){
+		for (int j = 0; j < mat->_colLength; j++){
+			freeObject(mat->_mem[i][j]);
+		}
 		free(mat->_mem[i]);
 	}
+	freeVector(mat->_relative);
 	free(mat);
 }
 
 /*
- * @Desc   : è·å¾—çŸ©é˜µä¸­æŒ‡å®šä½ç½®çš„å…ƒç´ 
- * @Param  : *self, å¾…æ“ä½œçš„Matrix
- * @Param  : m, æŒ‡å®šå¾…è·å–å…ƒç´ çš„è¡Œ
- * @Param  : n, æŒ‡å®šå¾…è·å–å…ƒç´ çš„åˆ—
- * @Return : è¿”å›æ–°çš„æ„å»ºå¥½çš„Vector
- * @Authro : Shuaiji Lu
- * @Date   : 2017.11.26
+* @Desc   : »ñµÃ¾ØÕóÖĞÖ¸¶¨Î»ÖÃµÄÔªËØ
+* @Param  : *self, ´ı²Ù×÷µÄMatrix
+* @Param  : m, Ö¸¶¨´ı»ñÈ¡ÔªËØµÄĞĞ
+* @Param  : n, Ö¸¶¨´ı»ñÈ¡ÔªËØµÄÁĞ
+* @Return : ·µ»ØĞÂµÄ¹¹½¨ºÃµÄVector
+* @Authro : Shuaiji Lu
+* @Date   : 2017/11/26
 */
 void *get(Matrix * const self, int m, int n){
 	if (m >= self->_rowLength || n >= self->_colLength){
 		return NULL;
 	}
-	return self->_mem[m][n];
+	return self->_mem[m][n]->item;
 }
 
 /*
-* @Desc   : è®¾ç½®Matrixä¸­æŒ‡å®šä½ç½®çš„å€¼
-* @Param  : *self, å¾…æ“ä½œçš„Matrix
-* @Param  : m, æŒ‡å®šéœ€è¦è®¾ç½®çš„å…ƒç´ çš„åˆ—
-* @Param  : n, æŒ‡å®šéœ€è¦è®¾ç½®çš„å…ƒç´ çš„è¡Œ
-* @Return : è¯¥ä½ç½®ä»¥å‰çš„å…ƒç´ 
+* @Desc   : ÉèÖÃMatrixÖĞÖ¸¶¨Î»ÖÃµÄÖµ
+* @Param  : *self, ´ı²Ù×÷µÄMatrix
+* @Param  : m, Ö¸¶¨ĞèÒªÉèÖÃµÄÔªËØµÄÁĞ
+* @Param  : n, Ö¸¶¨ĞèÒªÉèÖÃµÄÔªËØµÄĞĞ
+* @Return : ¸ÃÎ»ÖÃÒÔÇ°µÄÔªËØ
 * @Authro : Shuaiji Lu
-* @Date   : 2017.11.26
+* @Date   : 2017/11/26
 */
 void *set(Matrix * const self, int m, int n, void *val){
 	if (m >= self->_rowLength || n>=self->_colLength){
 		return NULL;
 	}
-	void * old = self->_mem[m][n];
-	self->_mem[m][n] = val;
+	void * old = self->_mem[m][n]->item;
+	self->_mem[m][n]->item = val;
 	return old;
 }
 
 /*
-* @Desc   : è·å–Matrixçš„è¡Œæ•°
-* @Param  : *self, å¾…æ“ä½œçš„Matrix
-* @Return : è¿”å›Matrixçš„è¡Œæ•°
+* @Desc   : »ñÈ¡MatrixµÄĞĞÊı
+* @Param  : *self, ´ı²Ù×÷µÄMatrix
+* @Return : ·µ»ØMatrixµÄĞĞÊı
 * @Authro : Shuaiji Lu
-* @Date   : 2017.11.26
+* @Date   : 2017/11/26
 */
 int rowSize(Matrix * const self){
 	return self->_rowLength;
 }
 
 /*
-* @Desc   : è·å–Matrixçš„åˆ—æ•°
-* @Param  : *self, å¾…æ“ä½œçš„Matrix
-* @Return : è¿”å›Matrixçš„åˆ—æ•°
+* @Desc   : »ñÈ¡MatrixµÄÁĞÊı
+* @Param  : *self, ´ı²Ù×÷µÄMatrix
+* @Return : ·µ»ØMatrixµÄÁĞÊı
 * @Authro : Shuaiji Lu
-* @Date   : 2017.11.26
+* @Date   : 2017/11/26
 */
 int colSize(Matrix * const self){
 	return self->_colLength;
 }
 
+
 /*
-* @Desc   : è·å–Matrixçš„æ€»å…ƒç´ æ•°
-* @Param  : *self, å¾…æ“ä½œçš„Matrix
-* @Return : è¿”å›Matrixçš„æ€»å…ƒç´ æ•°
+* @Desc   : »ñÈ¡MatrixµÄ×ÜÔªËØÊı
+* @Param  : *self, ´ı²Ù×÷µÄMatrix
+* @Return : ·µ»ØMatrixµÄ×ÜÔªËØÊı
 * @Authro : Shuaiji Lu
-* @Date   : 2017.11.26
+* @Date   : 2017/11/26
 */
 int totalSize(Matrix * const self){
 	return self->_colLength*self->_rowLength;

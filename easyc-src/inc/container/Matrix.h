@@ -2,22 +2,26 @@
 #define __MATRIX_H
 
 struct Matrix;
+struct Object;
+struct Vector;
 typedef struct Matrix Matrix;
+typedef struct Object Object;
+typedef struct Vector Vector;
 
 // 构造和析构
-Matrix *newMatrix();
 Matrix *newMatrixByNumber(int number, int rows, int cols);
 void freeMatrix(Matrix * const mat);
 
 /*
 * @Desc   : 固定行列大小的二维矩阵
 * @Author : Shuaiji Lu
-* @Date   : 2017.11.26
+* @Date   : 2017/11/26
 */
 struct Matrix{
 	int _rowLength;
 	int _colLength;
-	void ***_mem;
+	Object ***_mem;
+	Vector *_relative;
 
 	void *(*get)(Matrix * const self, int m, int n);
 	void *(*set)(Matrix * const self, int m, int n, void *val);

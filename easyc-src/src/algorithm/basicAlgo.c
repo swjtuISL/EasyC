@@ -5,8 +5,8 @@
 * @Param  : vector, 原始的Vector
 * @Param  : *idx, 返回最小值的索引
 * @Return : 返回vector中的最小值
-* @Authro : 卢帅吉
-* @Date   : 2017.11.26
+* @Authro : Shuaiji Lu
+* @Date   : 2017/11/26
 */
 int minInVector(Vector *vector, int *idx){
 	int val = vector->get(vector, 0);
