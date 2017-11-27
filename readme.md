@@ -1,8 +1,11 @@
 # EasyC
+<p align="center">
+  <img src="https://raw.githubusercontent.com/swjtuISL/EasyC/master/icon/logo.png?raw=true" alt="EasyC logo"/>
+</p>
 `EasyC`提供了丰富的API用于简化Windows环境下C语言编程。[这里]()会有一个快速示例。
 
 Windows环境下的C语言编程存在非常多的困难:
-* 缺乏类似C++, Java, Python等语言所具备的**容器**和**迭代器**功能。
+* 缺乏**容器**和**迭代器**功能。
 	* 没有字典, 可变数组, 字符串, LRU缓存, 链表等数据结构。在面临相关业务时要求程序员自己实现，增加编程难度。
 * 缺乏基本的**算法**。
 	* 没有直接提供字符串查询，排序，交集并集等功能。这同样增加了编程门槛。
