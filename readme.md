@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/swjtuISL/EasyC/master/logo.png" width="100px" alt="EasyC logo"/>
 </p>
 
-## EasyC 提供了丰富的类面向对象的API用于简化Windows环境下C语言编程。
+## 致力于简化Windows环境下的C语言编程
 Windows环境下的C语言编程存在非常多的困难:
 * 缺乏`容器`和`迭代器`功能。
 	* 没有字典, 可变数组, 字符串, LRU缓存, 链表等数据结构。在面临相关业务时要求程序员自己实现，增加编程难度。
@@ -11,7 +11,7 @@ Windows环境下的C语言编程存在非常多的困难:
 * 缺乏更为方便的`Windows API`编程接口。
 	* 若要使用Windows系统级服务，需要深入学习Windows底层原理，并且Windows API接口设计的并不算友好，直接采用原生API进行开发复杂度较高。
 
-由于上述原因，该工具将容器，算法和系统三个功能聚合，全面解决了上述问题。在[这里]()会有一个快速示例。
+由于上述原因，本团队开发了`EasyC`工具，将容器、算法和系统三个功能聚合，全面解决了上述问题。在[这里]()会有一个快速示例。
 
 ## 目录
 - [安装与使用](doc/install.md)
