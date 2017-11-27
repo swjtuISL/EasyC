@@ -1,6 +1,6 @@
 # EasyC
 <p align="center">
-  <img src="https://raw.githubusercontent.com/swjtuISL/EasyC/master/icon/logo.png?raw=true" alt="EasyC logo"/>
+  <img src="/swjtuISL/EasyC/blob/master/logo.png?raw=true" alt="EasyC logo"/>
 </p>
 `EasyC`提供了丰富的API用于简化Windows环境下C语言编程。[这里]()会有一个快速示例。
 
