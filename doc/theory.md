@@ -6,11 +6,11 @@
 #### 1).关联内存
 `关联内存`这一术语仅限于EasyC中，该术语描述了由容器生成的一些内存和容器自身具备关联性，并且容器在释放时，会自动释放关联内存。
 ```C
-String *s = newString("hello");			// 初始化String对象
-s->append(s, " ")->append(s, "World");	// 拼接
-char * chars = s->toChars(s);			// 以字符形式返回String对象中的字符数据, chars所指向的内存属于关联内存
-printf("%s", chars);					// 显示关联内存
-freeString(s);							// 释放s, 同时会自动释放关联内存
+String *s = newString("hello");		// 初始化String对象
+s->append(s, " ")->append(s, "World");		// 拼接
+char * chars = s->toChars(s);		// 以字符形式返回String对象中的字符数据, chars所指向的内存属于关联内存
+printf("%s", chars);		// 显示关联内存
+freeString(s);		// 释放s, 同时会自动释放关联内存
 ```
 这里`s->toChars(s)`返回的是关联内存, 关联内存的释放不由程序员进行管理，并且程序员也不应该管理，统一交由容器管理释放。并且关联内存具备临时性:
 ```C
