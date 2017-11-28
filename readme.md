@@ -9,6 +9,8 @@ Windows环境下的C语言编程存在非常多的困难:
 
 本团队开发了`EasyC`工具，将容器、算法和系统三个功能聚合，全面解决了上述问题。[这里]()会有一个快速示例。
 
+大家对于本项目的任何疑问和建议，都可以在[这里](https://github.com/swjtuISL/EasyC/issues)中提出。
+
 ## 目录
 - [安装与使用](doc/install.md)
 - [原理](doc/theory.md)
