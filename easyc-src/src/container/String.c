@@ -183,7 +183,7 @@ int toFloat(String *self){
 char *toChars(String *self){
 	char *chars = (char *)malloc(sizeof(char)*(self->_size+1));
 	memcpy(chars, self->_mem, self->_size + 1);
-	self->_relative->fadd(self->_relative, chars);
+	self->_relative->addObject(self->_relative, chars, free, NULL, NULL);
 	return chars;
 }
 

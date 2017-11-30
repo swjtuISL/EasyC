@@ -26,18 +26,41 @@ struct Vector{
 	Object ** _mem;
 
 	// public(interface)
-	void * (* get)(Vector * const self, int idx);							// 获取指定索引的数据
-	void (*set)(Vector * const self, int idx, void *item);					// 设置指定索引的数据, 数据所指向的内存不会释放
-	void (*fset)(Vector * const self, int idx, void *item);					// 设置指定索引的数据, 数据所指内存的释放方式为free
-	void (*ffset)(Vector * const self, int idx, void *item,					// 设置指定索引的数据, 数据所指内存的释放方式为freeMethod
-		void(*freeMethod)(void *));
-	void(*add)(Vector * const self, void *item);							// 在末尾添加数据, 数据所指向的内存不会释放
-	void(*fadd)(Vector * const self, void *item);							// 在末尾添加数据, 会使用free来释放数据所指向的内存
-	void(*ffadd)(Vector *const self, void *item, void(*freeMethod)(void *));// 在末尾添加数据, 会使用freeMethod来释放数据所指向的内存
-	void(*insert)(Vector * const self, int idx, void *item);				// 在指定索引位置插入数据, 数据所指向的内存不会释放
-	void(*finsert)(Vector * const self, int idx, void *item);				// 在指定索引位置插入数据, 会使用free来释放数据所指向的内存
-	void(*ffinsert)(Vector * const self, int idx, void *item,				// 在指定索引位置插入数据, 会使用freeMethod来释放数据所指向的内存
-		void(*freeMethod)(void *));				
+	void * (* get)(Vector * const self, int idx);
+	int (*getInt)(Vector * const self, int idx);
+	double (*getFloat)(Vector * const self, int idx);
+
+	void(*set)(Vector * const self, int idx, void *item);
+	void(*fset)(Vector * const self, int idx, void *item);
+	void(*setInt)(Vector * const self, int idx, int item);
+	void(*setFloat)(Vector * const self, int idx, double item);
+	void(*setChars)(Vector * const self, int idx, char * item);
+	void(*setObject)(Vector * const self, int idx, void *item,
+		void(*freeMethod)(void *),
+		String *(itemToString)(void *),
+		void*(*itemCopy)(void *));
+
+	void(*add)(Vector * const self, void *item);
+	void(*fadd)(Vector * const self, void *item);
+	void(*addInt)(Vector * const self, int item);
+	void(*addFloat)(Vector * const self, double item);
+	void(*addChars)(Vector * const self, char * item);
+	void(*addObject)(Vector * const self, void *item,
+		void(*freeMethod)(void *),
+		String *(itemToString)(void *),
+		void*(*itemCopy)(void *));
+
+	void(*insert)(Vector * const self, int idx, void *item);
+	void(*finsert)(Vector * const self, int idx, void *item);
+	void(*insertInt)(Vector * const self, int idx, int item);
+	void(*insertFloat)(Vector * const self, int idx, double item);
+	void(*insertChars)(Vector * const self, int idx, char * item);
+	void(*insertObject)(Vector * const self, int idx, void *item,
+		void(*freeMethod)(void *),
+		String *(itemToString)(void *),
+		void*(*itemCopy)(void *));
+
+
 	void (*remove)(Vector * const self, int idx);							// 删除指定索引的数据
 	int(*size)(Vector * const self);										// 返回动态数组大小
 	void(*clean)(Vector * const);											// 清空动态数组，【未实现】

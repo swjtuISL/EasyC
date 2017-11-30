@@ -52,7 +52,7 @@ static int start(Process * const self, char *path){
 	si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
 	si.hStdOutput = self->_rio->_ho;
 	si.dwFlags = STARTF_USESTDHANDLES;
-	CreateProcess(NULL, TEXT(path),
+	CreateProcess(NULL, path,
 		NULL, NULL, TRUE,
 		0, NULL, NULL,
 		&si, &pi);

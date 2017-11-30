@@ -4,13 +4,22 @@
 #include "Vector.h"
 #include "Object.h"
 #include "Matrix.h"
+#include "sysser.h"
 
 static void *get(Matrix * const self, int m, int n);
-static void *set(Matrix * const self, int m, int n, void *val);
+static int getInt(Matrix * const self, int m, int n);
+static double getFloat(Matrix * const self, int m, int n);
+
+static void set(Matrix * const self, int m, int n, void *val);
+static void setInt(Matrix * const self, int m, int n, int val);
+static void setFloat(Matrix * const self, int m, int n, double val);
+static void setObject(Matrix * const self, int m, int n, void(*freeMethod)(void *), String *(itemToString)(void *));
 
 static int rowSize(Matrix * const self);
 static int colSize(Matrix * const self);
 static int totalSize(Matrix * const self);
+
+static String *toString(Matrix *self);
 
 /*
 * @Desc   : Matrix¹¹ÔìÆ÷¡£·ÖÅäMatrix¿Õ¼ä£¬×°ÔØº¯Êý¡£
@@ -25,10 +34,19 @@ static Matrix *newMatrix(){
 
 	// load function
 	mat->get = get;
+	mat->getInt = getInt;
+	mat->getFloat = getFloat;
+
 	mat->set = set;
+	mat->setInt = setInt;
+	mat->setFloat = setFloat;
+	mat->setObject = setObject;
+
 	mat->rowSize = rowSize;
 	mat->colSize = colSize;
 	mat->totalSize = totalSize;
+
+	mat->toString = toString;
 	return mat;
 }
 
@@ -47,11 +65,55 @@ Matrix *newMatrixByNumber(int number, int rows, int cols){
 	for (int i = 0; i < rows; i++){
 		mat->_mem[i] = (Object **)malloc(sizeof(Object *) * cols);
 		for (int j = 0; j < cols; j++){
-			mat->_mem[i][j] = simpleObject(number);
+			mat->_mem[i][j] = newIntObject(number);
 		}
 	}
-	mat->_colLength = cols;
-	mat->_rowLength = rows;
+	mat->_cols = cols;
+	mat->_rows = rows;
+	return mat;
+}
+
+/*
+* @Desc   : 
+* @Param  : 
+* @Return : 
+* @Authro : Shuaiji Lu
+* @Date   : 2017/11/30
+*/
+Matrix *newMatrixByArray(int tarray[][8], int rows, int cols){
+	Matrix * mat = newMatrix();
+	mat->_mem = (Object ***)malloc(sizeof(Object **) * rows);
+	for (int i = 0; i < rows; i++){
+		mat->_mem[i] = (Object **)malloc(sizeof(Object *) * cols);
+		for (int j = 0; j < cols; j++){
+			mat->_mem[i][j] = newIntObject(tarray[i][j]);
+		}
+	}
+	mat->_cols = cols;
+	mat->_rows = rows;
+	return mat;
+}
+
+/*
+* @Desc   :
+* @Param  :
+* @Return :
+* @Authro : Shuaiji Lu
+* @Date   : 2017/11/30
+*/
+Matrix *newMatrixByMatrix(Matrix *omat){
+	int rows = omat->_rows;
+	int cols = omat->_cols;
+	Matrix * mat = newMatrix();
+	mat->_mem = (Object ***)malloc(sizeof(Object **) * rows);
+	for (int i = 0; i < rows; i++){
+ 		mat->_mem[i] = (Object **)malloc(sizeof(Object *) * cols);
+		for (int j = 0; j < cols; j++){
+			mat->_mem[i][j] = simpleObject(omat->get(omat, i, j));
+		}
+	}
+	mat->_cols = cols;
+	mat->_rows = rows;
 	return mat;
 }
 
@@ -63,13 +125,15 @@ Matrix *newMatrixByNumber(int number, int rows, int cols){
 * @Date   : 2017/11/26
 */
 void freeMatrix(Matrix * const mat){
-	for (int i = 0; i < mat->_rowLength; i++){
-		for (int j = 0; j < mat->_colLength; j++){
+	if (mat->_relative){
+		freeVector(mat->_relative);
+	}
+	for (int i = 0; i < mat->_rows; i++){
+		for (int j = 0; j < mat->_cols; j++){
 			freeObject(mat->_mem[i][j]);
 		}
 		free(mat->_mem[i]);
 	}
-	freeVector(mat->_relative);
 	free(mat);
 }
 
@@ -83,10 +147,38 @@ void freeMatrix(Matrix * const mat){
 * @Date   : 2017/11/26
 */
 void *get(Matrix * const self, int m, int n){
-	if (m >= self->_rowLength || n >= self->_colLength){
-		return NULL;
+	if (m >= self->_rows || n >= self->_cols){
+		reportError("¡¾´íÎó¡¿Matrix.getË÷Òý³¬³ö·¶Î§", 1);
 	}
 	return self->_mem[m][n]->item;
+}
+
+/*
+* @Desc   :
+* @Param  :
+* @Return :
+* @Authro : Shuaiji Lu
+* @Date   : 2017/11/30
+*/
+static int getInt(Matrix * const self, int m, int n){
+	if (m >= self->_rows || n >= self->_cols){
+		reportError("¡¾´íÎó¡¿Matrix.getË÷Òý³¬³ö·¶Î§", 1);
+	}
+	return self->_mem[m][n]->item;
+}
+
+/*
+* @Desc   :
+* @Param  :
+* @Return :
+* @Authro : Shuaiji Lu
+* @Date   : 2017/11/30
+*/
+static double getFloat(Matrix * const self, int m, int n){
+	if (m >= self->_rows || n >= self->_cols){
+		reportError("¡¾´íÎó¡¿Matrix.getË÷Òý³¬³ö·¶Î§", 1);
+	}
+	return *(double *)self->_mem[m][n]->item;
 }
 
 /*
@@ -98,13 +190,87 @@ void *get(Matrix * const self, int m, int n){
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/26
 */
-void *set(Matrix * const self, int m, int n, void *val){
-	if (m >= self->_rowLength || n>=self->_colLength){
-		return NULL;
+void set(Matrix * const self, int m, int n, void *item){
+	if (m >= self->_rows || n >= self->_cols){
+		reportError("¡¾´íÎó¡¿Matrix.setË÷Òý³¬³ö·¶Î§", 1);
 	}
-	void * old = self->_mem[m][n]->item;
-	self->_mem[m][n]->item = val;
-	return old;
+	Object * old = self->_mem[m][n];
+	if (old != NULL){
+		freeObject(old);
+	}
+	self->_mem[m][n] = simpleObject(item);
+}
+
+/*
+* @Desc   :
+* @Param  :
+* @Return :
+* @Authro : Shuaiji Lu
+* @Date   : 2017/11/30
+*/
+void fset(Matrix * const self, int m, int n, void *item){
+	if (m >= self->_rows || n >= self->_cols){
+		reportError("¡¾´íÎó¡¿Matrix.setË÷Òý³¬³ö·¶Î§", 1);
+	}
+	Object * old = self->_mem[m][n];
+	if (old != NULL){
+		freeObject(old);
+	}
+	self->_mem[m][n] = newObject(item, free, NULL, NULL);
+}
+
+/*
+* @Desc   :
+* @Param  :
+* @Return :
+* @Authro : Shuaiji Lu
+* @Date   : 2017/11/30
+*/
+static void setInt(Matrix * const self, int m, int n, int item){
+	if (m >= self->_rows || n >= self->_cols){
+		reportError("¡¾´íÎó¡¿Matrix.setË÷Òý³¬³ö·¶Î§", 1);
+	}
+	Object * old = self->_mem[m][n];
+	if (old != NULL){
+		freeObject(old);
+	}
+	self->_mem[m][n] = newIntObject(item);
+}
+
+/*
+* @Desc   :
+* @Param  :
+* @Return :
+* @Authro : Shuaiji Lu
+* @Date   : 2017/11/30
+*/
+static void setFloat(Matrix * const self, int m, int n, double item){
+	if (m >= self->_rows || n >= self->_cols){
+		reportError("¡¾´íÎó¡¿Matrix.setË÷Òý³¬³ö·¶Î§", 1);
+	}
+	Object * old = self->_mem[m][n];
+	if (old != NULL){
+		freeObject(old);
+	}
+	self->_mem[m][n] = newFloatObject(item);
+}
+
+/*
+* @Desc   :
+* @Param  :
+* @Return :
+* @Authro : Shuaiji Lu
+* @Date   : 2017/11/30
+*/
+static void setObject(Matrix * const self, int m, int n, void *item, void(*freeMethod)(void *), String *(itemToString)(void *), void*(*itemCopy)(void *)){
+	if (m >= self->_rows || n >= self->_cols){
+		reportError("¡¾´íÎó¡¿Matrix.setË÷Òý³¬³ö·¶Î§", 1);
+	}
+	Object * old = self->_mem[m][n];
+	if (old != NULL){
+		freeObject(old);
+	}
+	self->_mem[m][n] = newObject(item, freeMethod, itemToString, itemCopy);
 }
 
 /*
@@ -115,7 +281,7 @@ void *set(Matrix * const self, int m, int n, void *val){
 * @Date   : 2017/11/26
 */
 int rowSize(Matrix * const self){
-	return self->_rowLength;
+	return self->_rows;
 }
 
 /*
@@ -126,7 +292,7 @@ int rowSize(Matrix * const self){
 * @Date   : 2017/11/26
 */
 int colSize(Matrix * const self){
-	return self->_colLength;
+	return self->_cols;
 }
 
 
@@ -138,5 +304,29 @@ int colSize(Matrix * const self){
 * @Date   : 2017/11/26
 */
 int totalSize(Matrix * const self){
-	return self->_colLength*self->_rowLength;
+	return self->_cols*self->_rows;
+}
+
+/*
+* @Desc   :
+* @Param  :
+* @Return :
+* @Authro : Shuaiji Lu
+* @Date   : 2017/11/30
+*/
+String *toString(Matrix *self){
+	String *s = newString("");
+	for (int i = 0; i < self->_rows; i++){
+		for (int j = 0; j < self->_cols; j++){
+			Object *obj = self->_mem[i][j];
+			String *part = obj->toString(obj);
+			s->appendString(s, part)->append(s, ", ");
+		}
+		s->append(s, "\n");
+	}
+	if (self->_relative == NULL){
+		self->_relative = newVector();
+	}
+	self->_relative->addObject(self->_relative, s, freeString, NULL, NULL);
+	return s;
 }

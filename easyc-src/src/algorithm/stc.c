@@ -69,41 +69,41 @@ Vector *dualViterbi(const STCCode * const code, const Vector * const x, const Ve
 	// 1).initialize datastructures
 	Matrix * paths = newMatrixByNumber(0, 1<<code->l, code->n);
 	Vector *costs = newVectorByNumber(INF, 1 << code->l);
-	costs->set(costs, 0, 0);
+	costs->setInt(costs, 0, 0);
 	int m_id = 1;					// message bit id;
 	Vector * y = newVectorByNumber(0, x->size(x));
 
 	// 2).run forward algorithm
 	for (int i = 1; i <= code->n; i++){
 		Vector *costs_old = newVectorByVector(costs);
-		int hi = code->h->get(code->h, i-1);
+		int hi = code->h->getInt(code->h, i-1);
 		int ji = 1;
 		for (int j = 1; j <= (1 << code->l); j++){
-			int c1 = (int)costs_old->get(costs_old, ji-1) + ((int)x->get(x, i - 1)) * ((int)w->get(w, i - 1));
+			int c1 = costs_old->getInt(costs_old, ji-1) + (x->getInt(x, i - 1)) * (w->getInt(w, i - 1));
 			int tmp1 = costs_old->get(costs_old, (ji - 1) ^ hi);
-			int tmp2 = (1 - (int)x->get(x, i - 1)) * ((int)w->get(w, i - 1));
+			int tmp2 = (1 - x->getInt(x, i - 1)) * w->getInt(w, i - 1);
 			int c2 = tmp1 + tmp2;
 			c1 = c1 > INF ? INF : c1;
 			c2 = c2 > INF ? INF : c2;
 			if (c1 < c2){
-				costs->set(costs, j-1, c1);
-				paths->set(paths, j-1, i-1, ji);
+				costs->setInt(costs, j-1, c1);
+				paths->setInt(paths, j-1, i-1, ji);
 			}
 			else{
-				costs->set(costs, j-1, c2);
-				paths->set(paths, j-1, i-1, ((ji-1)^hi)+1);
+				costs->setInt(costs, j-1, c2);
+				paths->setInt(paths, j-1, i-1, ((ji-1)^hi)+1);
 			}
 			ji += 1;
 		}
-		int loopTimes = code->shift->get(code->shift, i - 1);
+		int loopTimes = code->shift->getInt(code->shift, i - 1);
 		for (int j = 1; j <= loopTimes; j++){
 			Vector *nv = newVector();
-			int startK = m->get(m, m_id-1) == 0 ? 0 : 1;
+			int startK = m->getInt(m, m_id-1) == 0 ? 0 : 1;
 			for (int k = startK; k < costs->size(costs); k += 2){
-				nv->add(nv, costs->get(costs, k));
+				nv->addInt(nv, costs->getInt(costs, k));
 			}
 			for (int k = 0; k < (1 << (code->l - 1)); k++){
-				nv->add(nv, INF);
+				nv->addInt(nv, INF);
 			}
 			m_id += 1;
 			freeVector(costs);
@@ -113,21 +113,21 @@ Vector *dualViterbi(const STCCode * const code, const Vector * const x, const Ve
 #ifdef STC_DEBUG
 		for (int i = 0; i < paths->rowSize(paths); i++){
 			for (int j = 0; j < paths->colSize(paths); j++){
-				if (paths->get(paths, i, j) == INF){
+				if (paths->getInt(paths, i, j) == INF){
 					printf("INF ");
 					continue;
 				}
-				printf("%d ", paths->get(paths, i, j));
+				printf("%d ", paths->getInt(paths, i, j));
 			}
 			printf("\n");
 		}
 		printf("costs : ");
 		for (int k = 0; k < costs->size(costs); k++){
-			if (costs->get(costs, k) == INF){
+			if (costs->getInt(costs, k) == INF){
 				printf("INF ");
 				continue;
 			}
-			printf("%d ", costs->get(costs, k));
+			printf("%d ", costs->getInt(costs, k));
 		}
 		printf("\n");
 		printf("\n=====================================================\n");
@@ -140,13 +140,13 @@ Vector *dualViterbi(const STCCode * const code, const Vector * const x, const Ve
 	ind += 1;
 	m_id -= 1;
 	for (int i = code->n; i >= 1; i--){
-		for (int j = 1; j <= code->shift->get(code->shift, i - 1); j++){
-			ind = 2 * ind + (int)m->get(m, m_id - 1) - 1;
+		for (int j = 1; j <= code->shift->getInt(code->shift, i - 1); j++){
+			ind = 2 * ind + m->getInt(m, m_id - 1) - 1;
 			m_id -= 1;
 		}
-		int tmp = paths->get(paths, ind - 1, i - 1);
-		y->set(y, i - 1, ind != tmp);
-		ind = paths->get(paths, ind - 1, i - 1);
+		int tmp = paths->getInt(paths, ind - 1, i - 1);
+		y->setInt(y, i - 1, ind != tmp);
+		ind = paths->getInt(paths, ind - 1, i - 1);
 	}
 
 	// 4).free
@@ -171,12 +171,12 @@ Vector *calacSyndrome(const STCCode * const code, const Vector * const x){
 	unsigned int tmp = 0;
 
 	for (int i = 1; i <= code->n; i++){
-		unsigned int hi = code->h->get(code->h, i-1);
-		if (x->get(x, i-1) == 1){
+		unsigned int hi = code->h->getInt(code->h, i-1);
+		if (x->getInt(x, i-1) == 1){
 			tmp ^= hi;
 		}
-		for (int j = 1; j <= code->shift->get(code->shift, i-1); j++){
-			m->add(m, tmp%2);
+		for (int j = 1; j <= code->shift->getInt(code->shift, i-1); j++){
+			m->addInt(m, tmp%2);
 			tmp >>= 1;
 		}
 	}
