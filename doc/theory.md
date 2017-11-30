@@ -26,7 +26,20 @@ easyc中有一个特殊的容器类：`Object`，这个类被其他所有容器�
 我们保存数据时，会将这个数据的地址存放在Object中，再将Object放在容器中。这个地址指向了我们用户使用的数据，因此该地址所指向的内存称为`主题内存`。
 
 #### 3).Object
-前一节介绍了主题内存被Object的指针所指向，在这里介绍下Object的作用，Object更为详细的原理和使用请参照后面的[Object原理和]()[ObjectAPI]()
+前一节介绍了主题内存被Object的指针所指向，在这里介绍下Object的作用。Object更为详细的原理和使用请参照后面的[Object原理]()和[ObjectAPI]()
+程Object是一个特殊的容器，这个容器仅有其他容器使用，程序员基本没有使用Object的相关场景。Object是对数据的一层抽象，提供了一系列的API方便容器管理内存。以下是Object的结构类型：
+```C
+struct Object{
+	void *item;
+	void*(*itemCopy)(void *item);
+	void (*itemFree)(void *item);
+	String *(*itemToString)(void *item);
+};
+```
+这里的*item就是指向主题内存的指针。很明显，Object中缓存了3个基本方法：itemCopy, itemFree, itemToString.分别管理了item的拷贝，空间释放以及字符串化。
 
+用户再使用容器存放数据的时候，需要指定数据的管理方式，其中包括数据的复制，释放方案，字符串化方案，当这些确定以后，用户就不用自己去管理数据内存的释放了，容器在释放的时候将会自行调用其中每个Object的itemFree以此释放。
+
+因为常用的数据主要是整数，浮点数和字符数组，因此会有这几种类型的Object自动生成函数，避免用户编写冗长的参数。具体会在[Object原理]()中讨论。
 ### 2.编程模型
 C语言的内存泄露时有发生，并且很难控制，但是只需要按照内存模型和编程模型的规范进行编程，就可以提高代码的可维护性、可读性并且可以避免C语言中的内存泄露问题。
