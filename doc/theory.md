@@ -36,7 +36,7 @@ struct Object{
 	String *(*itemToString)(void *item);
 };
 ```
-这里的*item就是指向主题内存的指针。很明显，Object中缓存了3个基本方法：itemCopy, itemFree, itemToString.分别管理了item的拷贝，空间释放以及字符串化。
+这里的`*item`就是指向主题内存的指针。很明显，Object中缓存了3个基本方法：`itemCopy, itemFree和itemToString`，分别管理了item的拷贝，空间释放以及字符串化。
 
 用户再使用容器存放数据的时候，需要指定数据的管理方式，其中包括数据的复制，释放方案，字符串化方案，当这些确定以后，用户就不用自己去管理数据内存的释放了，容器在释放的时候将会自行调用其中每个Object的itemFree以此释放。
 
