@@ -1,21 +1,15 @@
 #ifndef __LIST_H
 #define __LIST_H
 
+#include "containerDefine.h"
+
 // 声明结构体及其别名
-struct Node;
 struct List;
-typedef struct Node Node;
 typedef struct List List;
 
 // 构造和析构
 List *newList();
 void freeList(List * const list);
-
-// 定义结构体成员
-struct Node{
-	void *value;
-	Node *next;
-};
 
 struct List{
 	Node * _head;

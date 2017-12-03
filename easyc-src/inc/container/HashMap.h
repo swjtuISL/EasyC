@@ -1,46 +1,46 @@
 #ifndef __HASHMAP_H
 #define __HASHMAP_H
 
+#include "containerDefine.h"
 #include "Vector.h"
 
 // 声明结构体及其别名
-struct KVNode;
+
 struct HashMap;
-struct Entry;
-typedef struct KVNode KVNode;
+struct String;
 typedef struct HashMap HashMap;
-typedef struct Entry Entry;
+typedef struct String String;
+
 
 // 构造和析构
 HashMap *newHashMap(unsigned long(*hashFunction)(void *obj));
 void freeHashMap(HashMap * const map);
 void removeHashMap(HashMap * const map);
 
-// 定义结构体成员
-struct KVNode{
-	KVNode * next;
-	char * key;
-	void * value;
-};
 
-struct Entry{
-	char *key;
-	char *value;
-};
 
 struct HashMap{
 	int _size;				// 实际的大小
 	int _bucketsLength;		// buckets数组大小
 	float _maxAverageDeep;	// 最大平均深度
 	KVNode ** _buckets;		// 桶
+	Vector *_relative;
 
 	// public(interface)
 	void * (*get)(HashMap * const self, void *key);
-	void * (*put)(HashMap * const self, void *key, void * value);
+	int(*getInt)(HashMap * const self, void *key);
+	float(*getFloat)(HashMap * const self, void *key);
+	void (*putInt)(HashMap * const self, void *key, int value);
+	void (*putFloat)(HashMap * const self, void *key, double value);
+	void (*putChars)(HashMap * const self, void *key, char * value);
+	void(*put)(HashMap * const self, void *key, void * value, 
+		void(*freeMethod)(void *),
+		String *(itemToString)(void *),
+		void*(*itemCopy)(void *));
 	Vector * (*keys)(HashMap * const self);
 	Vector * (*entries)(HashMap * const self);
 	int(*size)(HashMap * const self);
-	char * (*toString)(HashMap * const self);				// 将数据转换为字符串，方便调试【未实现】。
+	String * (*toString)(HashMap * const self);				// 将数据转换为字符串，方便调试【未实现】。
 
 	// private
 	void (* _resize)(HashMap * const self);
