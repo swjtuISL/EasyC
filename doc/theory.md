@@ -72,6 +72,11 @@ s->append(s, "age")->append(s, age)->...;
 申请容器和释放容器操作的是容器的指针，并且也应是容器的指针。若容器名为Container，则申请容器的函数一定是`Container *container = newContainer(...)`，释放容器的函数一定是`freeContainer(container)`。
 
 #### 3).主题内存，关联内存以及非关联内存的释放
+这三种内存和容器相关，其中主题内存和关联内存在之前已经进行过描述。简而言之：
+* 主题内存，容器实际需要保存的内存空间，容器的某些方法可以获取主题内存的数据，如`char * name = hashMap->get(hashMap, "name");`。
+* 关联内存，容器相关方法生成的内存空间，其释放由容器管理，如`String *format = hashMap->toString(hashMap);`，将HashMap格式化。
+* 非关联内存，容器相关方法生成的内存空间，不由容器管理，如`String *substring = s->substring(s, 2, 3);`，将生成新的字符空间。
+从关系上来讲，主题内存和关联内存与容器都存在依赖关系，而非关联内存和容器之间是相互独立的，也因此，主题内存和关联内存的空间释放都由容器管理，也就是说`freeContainer(container)`会将`container`生成的关联内存和其中的主题内存都释放掉，但是由其生成的非关联内存由程序员独自释放。
 
 #### 4).内存泄露检测方案
 EasyC适合于`Visual Studio 2013`及其以上版本的环境中使用，在Visual Studio 2013自带了内存泄露的检测。建议大家多进行检测，帮助开发人员解决隐藏BUG。
