@@ -318,9 +318,9 @@ String *toString(Matrix *self){
 	String *s = newString("");
 	for (int i = 0; i < self->_rows; i++){
 		for (int j = 0; j < self->_cols; j++){
-			Object *obj = self->_mem[i][j];
-			String *part = obj->toString(obj);
+			String *part = self->_mem[i][j]->toString(self->_mem[i][j]);
 			s->appendString(s, part)->append(s, ", ");
+			freeString(part);
 		}
 		s->append(s, "\n");
 	}

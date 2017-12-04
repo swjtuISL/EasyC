@@ -13,7 +13,7 @@ typedef struct String String;
 
 
 // 构造和析构
-HashMap *newHashMap(unsigned long(*hashFunction)(void *obj));
+HashMap *newHashMap(unsigned long(*keyHash)(void *obj));
 void freeHashMap(HashMap * const map);
 void removeHashMap(HashMap * const map);
 
@@ -25,8 +25,10 @@ struct HashMap{
 	float _maxAverageDeep;	// 最大平均深度
 	KVNode ** _buckets;		// 桶
 	Vector *_relative;
+	void(*_kfm)(void *);	// key的释放方式
 
 	// public(interface)
+	void (*setKeyFreeMethod)(HashMap * const self, void (*keyFreeMethod)(void *));
 	void * (*get)(HashMap * const self, void *key);
 	int(*getInt)(HashMap * const self, void *key);
 	float(*getFloat)(HashMap * const self, void *key);
@@ -38,9 +40,8 @@ struct HashMap{
 		String *(itemToString)(void *),
 		void*(*itemCopy)(void *));
 	Vector * (*keys)(HashMap * const self);
-	Vector * (*entries)(HashMap * const self);
 	int(*size)(HashMap * const self);
-	String * (*toString)(HashMap * const self);				// 将数据转换为字符串，方便调试【未实现】。
+	String * (*toString)(HashMap * const self);				// 将数据转换为字符串，方便调试。
 
 	// private
 	void (* _resize)(HashMap * const self);

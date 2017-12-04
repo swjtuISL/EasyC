@@ -208,6 +208,6 @@ static String * toString(Object *self){
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
-static Object* copy(Object *self){
+static Object * copy(Object *self){
 	return newObject(self->itemCopy(self->item), self->itemFree, self->itemToString, self->itemCopy);
 }

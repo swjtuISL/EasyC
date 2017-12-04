@@ -65,7 +65,9 @@ struct Vector{
 	int(*size)(Vector * const self);										// 返回动态数组大小
 	void(*clean)(Vector * const);											// 清空动态数组，【未实现】
 	int(*contain)(Vector * const, void * obj, int(*cmp)(void*, void *));	// 判断对象是否存在, 【未实现】
-	void *(*toArray)(Vector *const self);									// 转换为数组, 【未实现】
+	int    *(*toIntArray)(Vector *const self);
+	double *(*toFloatArray)(Vector *const self);
+	void   *(*toPtrArray)(Vector *const self);
 	String *(*toString)(Vector *const self);								// 将Vector中的object转换为String
 
 	// private

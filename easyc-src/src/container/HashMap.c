@@ -8,6 +8,7 @@
 static const INITIAL_BUCKETS_LENGTH = 16;
 static const DEFAULT_MAX_AVERAGE_DEEP = 3;
 
+static void setKeyFreeMethod(HashMap * const self, void(*keyFreeMethod)(void *));
 static void * get(HashMap * const self, void *key);
 static int getInt(HashMap * const self, void *key);
 static float getFloat(HashMap * const self, void *key);
@@ -23,7 +24,6 @@ static String * toString(HashMap * const self);				// 将数据转换为字符串，方便调
 static unsigned long defaultHash(void *obj);		// key的默认hash处理函数
 static void putObject(HashMap * const self, void *key, Object * obj);
 
-
 /*
 * @Desc   : HashMap构造器.构造一个空的hashMap.
 * @Param  : *hashFunction, hash函数, 作用于key上进行.为NULL时认为key为字符串, 并采用easyc默认的hash函数.
@@ -32,7 +32,7 @@ static void putObject(HashMap * const self, void *key, Object * obj);
 * @Date   : 2017/11/26
 */
 HashMap *newHashMap(
-	unsigned long (* hashFunction)(void *obj)		// 配置hash函数
+	unsigned long(*keyHash)(void *obj)		// 配置hash函数
 	){
 	HashMap *map = (HashMap *)malloc(sizeof(HashMap));
 
@@ -56,11 +56,11 @@ HashMap *newHashMap(
 	map->putChars = putChars;
 	map->size = size;
 	map->keys = keys;
-	map->entries = entries;
+	map->setKeyFreeMethod = setKeyFreeMethod;
 	map->toString = toString;
 	map->_resize = resize;
 
-	map->_hash = hashFunction == NULL ? defaultHash : hashFunction;
+	map->_hash = keyHash == NULL ? defaultHash : keyHash;
 
 	return map;
 }
@@ -75,13 +75,14 @@ HashMap *newHashMap(
 void freeHashMap(HashMap * const map){
 	freeVector(map->_relative);
 	for (int i = 0; i < map->_bucketsLength; i++){
-		KVNode *node = map->_buckets[i];
-		while (node!=NULL && node->next != NULL){			// 释放桶中链表
-			KVNode *nextnode = node->next;
-			free(node);
-			node = nextnode;
+		for (KVNode *no = map->_buckets[i], *nodenext = NULL; no != NULL; no = nodenext){
+			nodenext = no->next;
+			if (map->_kfm){
+				map->_kfm(no->key);
+			}
+			freeObject(no->obj);
+			free(no);
 		}
-		free(node);
 		map->_buckets[i] = NULL;
 	}
 	free(map->_buckets);
@@ -108,6 +109,14 @@ static void * get(HashMap * const self, void *key){
 	return NULL;
 }
 
+/*
+* @Desc   : 获取hashmap中key所对应的int型数据.
+* @Param  : *self, 待操作的hashMap.
+* @Param  : *key, 获取该key对应的val.
+* @Return : 返回key对应的val.
+* @Authro : Shuaiji Lu
+* @Date   : 2017/12/04
+*/
 static int getInt(HashMap * const self, void *key){
 	int idx = self->_hash(key) % self->_bucketsLength;
 
@@ -118,6 +127,15 @@ static int getInt(HashMap * const self, void *key){
 	}
 	return NULL;
 }
+
+/*
+* @Desc   : 获取hashmap中key所对应的浮点型数据.
+* @Param  : *self, 待操作的hashMap.
+* @Param  : *key, 获取该key对应的val.
+* @Return : 返回key对应的val.
+* @Authro : Shuaiji Lu
+* @Date   : 2017/12/04
+*/
 static float getFloat(HashMap * const self, void *key){
 	int idx = self->_hash(key) % self->_bucketsLength;
 
@@ -129,7 +147,15 @@ static float getFloat(HashMap * const self, void *key){
 	reportError("无法获取Float数据", 1);
 }
 
-
+/*
+* @Desc   : 往桶中添加一个Object，若key已经存在，需要先释放已存在的Object。
+* @Param  : *self, 待操作的hashMap.
+* @Param  : *key
+* @Param  : *obj, 保存的Object实例
+* @Return : 返回key对应的val.
+* @Authro : Shuaiji Lu
+* @Date   : 2017/12/04
+*/
 static void putObject(HashMap * const self, void *key, Object * obj){
 	int idx = 0;
 	KVNode *bucketop = NULL;
@@ -169,12 +195,41 @@ static void put(HashMap * const self, void *key, void * value, void(*freeMethod)
 	putObject(self, key, newObject(value, freeMethod, itemToString, itemCopy));
 }
 
+/*
+* @Desc   : 设置hashmap中key所对应的整型val.若不存在该key则添加key, 若key已经存在则覆盖key所对应的val.
+* @Param  : *self, 待操作的hashMap.
+* @Param  : *key, 获取该key对应的val.
+* @Param  : value, 设置key的值为整型value.
+* @Return : 无
+* @Authro : Shuaiji Lu
+* @Date   : 2017/12/04
+*/
 static void putInt(HashMap * const self, void *key, int value){
 	putObject(self, key, newIntObject(value));
 }
+
+/*
+* @Desc   : 设置hashmap中key所对应的整型val.若不存在该key则添加key, 若key已经存在则覆盖key所对应的val.
+* @Param  : *self, 待操作的hashMap.
+* @Param  : *key, 获取该key对应的val.
+* @Param  : value, 设置key的值为浮点数value.
+* @Return : 无
+* @Authro : Shuaiji Lu
+* @Date   : 2017/12/04
+*/
 static void putFloat(HashMap * const self, void *key, double value){
 	putObject(self, key, newFloatObject(value));
 }
+
+/*
+* @Desc   : 设置hashmap中key所对应的整型val.若不存在该key则添加key, 若key已经存在则覆盖key所对应的val.
+* @Param  : *self, 待操作的hashMap.
+* @Param  : *key, 获取该key对应的val.
+* @Param  : *value, 设置key的值为字符数组的首地址value.
+* @Return : 无
+* @Authro : Shuaiji Lu
+* @Date   : 2017/12/04
+*/
 static void putChars(HashMap * const self, void *key, char * value){
 	putObject(self, key, newCharsObject(value));
 }
@@ -209,24 +264,15 @@ static Vector *keys(HashMap * const self){
 }
 
 /*
-* @Desc   : 以Vector的形式返回HashMap中所有的kv对.
+* @Desc   : 设置key的释放方式，支持以free的形式自动释放key
 * @Param  : *self, 待操作的hashMap.
+* @Param  : *keyFreeMethod，key的释放方案
 * @Return : 无
 * @Authro : Shuaiji Lu
-* @Date   : 2017/11/26
+* @Date   : 2017/12/04
 */
-static Vector *entries(HashMap * const self){
-	Vector *vector = newVector();
-	for (int i = 0; i < self->_bucketsLength; i++){
-		for (KVNode *node = self->_buckets[i]; node != NULL; node = node->next){
-			Entry *entry = (Entry *)malloc(sizeof(Entry));
-			entry->key = node->key;
-			entry->value = node->obj;
-			vector->add(vector, entry);
-		}
-	}
-	self->_relative->addObject(self->_relative, vector, freeVector, NULL, NULL);
-	return vector;
+static void setKeyFreeMethod(HashMap * const self, void(*keyFreeMethod)(void *)){
+	self->_kfm = keyFreeMethod;
 }
 
 /*
@@ -263,13 +309,22 @@ static void resize(HashMap * const self){
 	self->_bucketsLength = newBucketsLength;
 }
 
+/*
+* @Desc   : 格式化HashMap
+* @Param  : *self, 待操作的hashMap.
+* @Return : 格式化的String
+* @Authro : Shuaiji Lu
+* @Date   : 2017/12/04
+*/
 String * toString(HashMap * const self){
 	String *s = newString("");
 
 	for (int i = 0; i < self->_bucketsLength; i++){
 		for (KVNode *node = self->_buckets[i]; node != NULL; node = node->next){
+			String *tmp = node->obj->toString(node->obj);
 			s->append(s, "[")->append(s, node->key)->append(s, "=")
-				->appendString(s, node->obj->toString(node->obj))->append(s, "],");
+				->appendString(s, tmp)->append(s, "],");
+			freeString(tmp);
 		}
 	}
 	self->_relative->addObject(self->_relative, s, freeString, NULL, NULL);

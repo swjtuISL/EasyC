@@ -34,7 +34,9 @@ static void insertObject(Vector * const self, int idx, void *item, void(*freeMet
 
 static void remove(Vector * const self, int idx);
 static int size(Vector * const self);
-static void *toArray(Vector *const self);
+static int *toIntArray(Vector *const self);
+static double *toFloatArray(Vector *const self);
+static void *toPtrArray(Vector *const self);
 static String *toString(Vector *const self);
 static void _resize(Vector * const self, int target);
 
@@ -81,7 +83,9 @@ Vector *newVector(){
 	
 	vector->remove = remove;
 	vector->size = size;
-	vector->toArray = toArray;
+	vector->toIntArray = toIntArray;
+	vector->toFloatArray = toFloatArray;
+	vector->toPtrArray = toPtrArray;
 	vector->toString = toString;
 	vector->_resize = _resize;
 }
@@ -175,36 +179,38 @@ void freeAllVector(Vector * const vector){
 * @Date   : 2017/11/26
 */
 static void * get(Vector * const self, int idx){
-	if (idx >= self->_size){
+	if (idx >= self->_size || idx < 0){
 		return NULL;
 	}
 	return self->_mem[idx]->item;
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 获得整型的数值
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 获得该索引处的元素.
+* @Return : 对应索引处以整型形式取出数据
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
 static int getInt(Vector * const self, int idx){
-	if (idx >= self->_size){
+	if (idx >= self->_size || idx < 0){
 		reportError("【错误】getInt索引超出范围", 1);
 	}
 	return self->_mem[idx]->item;
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 获得浮点数的数值
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 获得该索引处的元素.
+* @Return : 对应索引处以浮点数形式取出数据
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
 static double getFloat(Vector * const self, int idx){
-	if (idx >= self->_size){
-		reportError("【错误】getFloat索引超出范围", 2);
+	if (idx >= self->_size || idx < 0) {
+		reportError("【错误】getFloat索引超出范围", 1);
 	}
 	return *(double *)self->_mem[idx]->item;
 }
@@ -220,7 +226,7 @@ static double getFloat(Vector * const self, int idx){
 * @Date   : 2017/11/26
 */
 static void set(Vector * const self, int idx, void *item){
-	if (idx >= self->_size){
+	if (idx >= self->_size || idx < 0){
 		reportError("【错误】set索引超出范围", 1);
 	}
 	Object * old = self->_mem[idx];
@@ -231,14 +237,16 @@ static void set(Vector * const self, int idx, void *item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 设置指定索引的对象，并且该对象以free的形式被释放，以打印地址值的形式进行字符格式化，以地址拷贝的形式
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 待赋值的位置.
+* @Param  : *item, 赋值到vector的元素.
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
 static void fset(Vector * const self, int idx, void *item){
-	if (idx >= self->_size){
+	if (idx >= self->_size || idx < 0){
 		reportError("【错误】set索引超出范围", 1);
 	}
 	Object * old = self->_mem[idx];
@@ -249,9 +257,11 @@ static void fset(Vector * const self, int idx, void *item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 设置指定索引位置的对象为int值
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 待赋值的位置.
+* @Param  : item, 赋值到vector的元素.
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -267,9 +277,11 @@ static void setInt(Vector * const self, int idx, int item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 设置指定索引位置的对象为Float值
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 待赋值的位置.
+* @Param  : item, 赋值到vector的元素.
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -285,9 +297,11 @@ static void setFloat(Vector * const self, int idx, double item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 设置指定索引位置的对象为char *的对象，配置charsToString的格式化方案, 不进行内存释放，采用深拷贝。
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 待赋值的位置.
+* @Param  : *item, 赋值到vector的元素.
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -304,9 +318,14 @@ static void setChars(Vector * const self, int idx, char *item){
 
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 设置指定索引位置的对象，并自行配置其相关方案。这些方案协助容器管理元素。
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 待赋值的位置.
+* @Param  : *item, 赋值到vector的元素.
+* @Param  : *freeMethod, 对象的释放方案
+* @Param  : *itemToString, 对象的格式化方案
+* @Param  : *itemCopy, 对象的拷贝方案
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -322,7 +341,7 @@ static void setObject(Vector * const self, int idx, void *item, void(*freeMethod
 }
 
 /*
-* @Desc   : 在末尾添加一格新元素, 新主题内存不进行自动释放.
+* @Desc   : 在末尾添加一格新元素, 新主题内存不进行自动释放，拷贝方案为直接复制地址，格式化方案为直接打印地址值。
 * @Param  : *self, 待操作的vector.
 * @Param  : *item, 主题内存.
 * @Return : 无
@@ -336,9 +355,10 @@ static void add(Vector * const self, void *item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 在末尾添加一格新元素, 新主题内存用free进行自动释放，拷贝方案为直接复制地址，格式化方案为直接打印地址值。
+* @Param  : *self, 待操作的vector.
+* @Param  : *item, 主题内存.
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -349,9 +369,10 @@ static void fadd(Vector * const self, void *item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 在末尾添加一格新元素, 新主题内存用不自动释放，拷贝方案为直接复制值，格式化方案为直接打印值。
+* @Param  : *self, 待操作的vector.
+* @Param  : item, 整型数据.
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -362,9 +383,10 @@ static void addInt(Vector * const self, int item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 在末尾添加一格新元素, 新主题内存用free进行自动释放，拷贝方案为直接复制地址所指向的内容，格式化方案为深拷贝。
+* @Param  : *self, 待操作的vector.
+* @Param  : item, 浮点数.
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -375,9 +397,10 @@ static void addFloat(Vector * const self, double item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 在末尾添加一格新元素, 新主题内存用free进行自动释放，拷贝方案为深拷贝，格式化方案为直接以字符串形式打印。
+* @Param  : *self, 待操作的vector.
+* @Param  : *item, 字符串首地址.
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -388,9 +411,13 @@ static void addChars(Vector * const self, char * item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 在末尾添加一格新元素, 新对象的管理方案自行配置。
+* @Param  : *self, 待操作的vector.
+* @Param  : *item, 主体内存.
+* @Param  : *freeMethod, 对象的释放方案
+* @Param  : *itemToString, 对象的格式化方案
+* @Param  : *itemCopy, 对象的拷贝方案
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -422,9 +449,11 @@ static void insert(Vector * const self, int idx, void *item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 在指定的位置插入一个元素, 该位置后面的所有元素往后面移动一格.新主题内存用free自动释放，格式化方案为打印地址值，拷贝方案为直接复制地址值。
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 在该索引位置插入.
+* @Param  : *item, 插入的主题内存.
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -441,9 +470,11 @@ static void finsert(Vector * const self, int idx, void *item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 在指定的位置插入一个元素, 该位置后面的所有元素往后面移动一格.新主题内存直接用Int值
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 在该索引位置插入.
+* @Param  : item, 插入的整型数据.
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -460,9 +491,11 @@ static void insertInt(Vector * const self, int idx, int item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 在指定的位置插入一个元素, 该位置后面的所有元素往后面移动一格.新主题内存直接用Float值的地址
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 在该索引位置插入.
+* @Param  : item, 插入的浮点数据.
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -479,9 +512,11 @@ static void insertFloat(Vector * const self, int idx, double item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 在指定的位置插入一个元素, 该位置后面的所有元素往后面移动一格.新主题内存直接用字符数组首地址.
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 在该索引位置插入.
+* @Param  : *item, 插入的字符数组.
+* @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -498,9 +533,13 @@ static void insertChars(Vector * const self, int idx, char * item){
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 在指定的位置插入一个元素, 该位置后面的所有元素往后面移动一格.新主题内存直接用地址值。
+* @Param  : *self, 待操作的vector.
+* @Param  : idx, 待赋值的位置.
+* @Param  : *item, 赋值到vector的元素.
+* @Param  : *freeMethod, 对象的释放方案
+* @Param  : *itemToString, 对象的格式化方案
+* @Param  : *itemCopy, 对象的拷贝方案
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -547,21 +586,22 @@ static int size(Vector * const self){
 	return self->_size;
 }
 
-/*
-* @Desc   :
-* @Param  :
-* @Return :
-* @Authro : Shuaiji Lu
-* @Date   : 2017/11/30
-*/
-static void *toArray(Vector *const self){
+static int *toIntArray(Vector *const self){
+
+}
+
+static double *toFloatArray(Vector *const self){
+
+}
+
+static void *toPtrArray(Vector *const self){
 
 }
 
 /*
-* @Desc   :
-* @Param  :
-* @Return :
+* @Desc   : 将当期Vector的每个数据进行格式化，返回格式化后的String
+* @Param  : *self, 待操作的vector.
+* @Return : 转换为字符串以后的数据
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/30
 */
@@ -570,6 +610,7 @@ static String *toString(Vector *const self){
 	for (int i = 0; i < self->_size; i++){
 		String *part = (Object *)self->_mem[i]->toString(self->_mem[i]);
 		s->appendString(s, part)->append(s, ", ");
+		freeString(part);
 	}
 	if (self->_relative == NULL){
 		self->_relative = newVector();
@@ -581,6 +622,7 @@ static String *toString(Vector *const self){
 /*
 * @Desc   : vector扩容. 当vector中再增加一个元素达到capacity*loadFactor时, 将进行扩容操作.
 * @Param  : *self, 待操作的vector.
+* @Param  : target, 需要扩容以支持target的容量
 * @Return : 无
 * @Authro : Shuaiji Lu
 * @Date   : 2017/11/26
