@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-
+#include <Windows.h>
 #include "sysser.h"
 #include "Object.h"
 #include "HashMap.h"
@@ -35,6 +35,7 @@ HashMap *newHashMap(
 	unsigned long(*keyHash)(void *obj)		// ÅäÖÃhashº¯Êý
 	){
 	HashMap *map = (HashMap *)malloc(sizeof(HashMap));
+	ZeroMemory(map, sizeof(HashMap));
 
 	map->_buckets = (KVNode **)malloc(sizeof(KVNode *)*INITIAL_BUCKETS_LENGTH);
 	for (int i = 0; i < INITIAL_BUCKETS_LENGTH; i++){

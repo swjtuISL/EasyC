@@ -10,7 +10,7 @@ String *newString(char * chars);
 void freeString(String *s);
 char *toChars(String *self);
 int toInt(String *self);									// 【未实现】
-int toFloat(String *self);									// 【未实现】
+double toFloat(String *self);								// 【未实现】
 
 /*
 * @Desc   : 动态字符串, 可以动态的扩展字符串, 也提供转换为char*的接口.
@@ -30,10 +30,13 @@ struct String{
 	String *(*appendPtr)(String *self, void *ptr);
 	String *(*appendInt)(String *self, int intnum);
 	String *(*appendFloat)(String *self, float floatnum);
+	String *(*appendChar)(String *self, char chr);
 	String *(*substring)(String *self, int begin, int length);		// 【未实现】
+	char(*lastChar)(String *self);									// 字符串最后一个字符(结尾符的前一个)
+	char(*popChar)(String *self);									// 将最后一个字符弹出
 	int(*size)(String *self);
-	int(*toInt)(String *self);										// 【未实现】
-	int(*toFloat)(String *self);									// 【未实现】
+	int(*toInt)(String *self);										
+	double(*toFloat)(String *self);
 	char *(*toChars)(String *self);
 
 	// private

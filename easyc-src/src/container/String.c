@@ -15,11 +15,14 @@ static String * appendString(String *self, String *s);
 static String * appendPtr(String *self, void *ptr);
 static String * appendInt(String *self, int intnum);
 static String * appendFloat(String *self, float floatnum);
+static String * appendChar(String *self, char chr);
 static String * substring(String *self, int begin, int length);
+static char lastChar(String *self);
+static char popChar(String *self);
 static int size(String *self);
 static void _resize(String *self, int target);
 int toInt(String *self);
-int toFloat(String *self);
+double toFloat(String *self);
 char *toChars(String *self);
 
 /*
@@ -53,7 +56,10 @@ String *newString(char * chars){
 	s->appendInt = appendInt;
 	s->appendFloat = appendFloat;
 	s->appendPtr = appendPtr;
+	s->appendChar = appendChar;
 	s->substring = substring;
+	s->lastChar = lastChar;
+	s->popChar = popChar;
 	s->size = size;
 	s->toInt = toInt;
 	s->toFloat = toFloat;
@@ -150,8 +156,39 @@ static String * appendString(String *self, String *s){
 	return self;
 }
 
+static String * appendChar(String *self, char chr){
+	self->_resize(self, self->_size + 2);					// +2是预留了结尾符
+	self->_mem[self->_size] = chr;
+	self->_mem[self->_size+1] = '\0';
+	self->_size += 1;
+	return self;
+}
+
 static String *substring(String *self, int begin, int length){
 
+}
+
+static char lastChar(String *self){
+	if (self->_size >= 1){
+		return self->_mem[self->_size-1];
+	}
+	else{
+		// Exception
+		return -1;
+	}
+}
+
+static char popChar(String *self){
+	if (self->_size >= 1){
+		char old = self->_mem[self->_size - 1];
+		self->_mem[self->_size - 1] = self->_mem[self->_size];
+		self->_size -= 1;
+		return old;
+	}
+	else{
+		// Exception
+		return -1;
+	}
 }
 
 /*
@@ -163,28 +200,6 @@ static String *substring(String *self, int begin, int length){
 */
 static int size(String *self){
 	return self->_size;
-}
-
-int toInt(String *self){
-
-}
-
-int toFloat(String *self){
-
-}
-
-/*
-* @Desc   : 将字符串转换到char*, 返回的数据为相关对象, String释放的时候会被释放.
-* @Param  : *self, 要操作的String
-* @Return : 返回字符串的chars.
-* @Authro : Shuaiji Lu
-* @Date   : 2017/11/27
-*/
-char *toChars(String *self){
-	char *chars = (char *)malloc(sizeof(char)*(self->_size+1));
-	memcpy(chars, self->_mem, self->_size + 1);
-	self->_relative->addObject(self->_relative, chars, free, NULL, NULL);
-	return chars;
 }
 
 /*
@@ -212,4 +227,28 @@ static void _resize(String *self, int target){
 	free(self->_mem);
 	self->_mem = newmem;
 	self->_capacity = newcap;
+}
+
+int toInt(String *self){
+	int r = atoi(self->_mem);
+	return r;
+}
+
+double toFloat(String *self){
+	double r = atof(self->_mem);
+	return r;
+}
+
+/*
+* @Desc   : 将字符串转换到char*, 返回的数据为相关对象, String释放的时候会被释放.
+* @Param  : *self, 要操作的String
+* @Return : 返回字符串的chars.
+* @Authro : Shuaiji Lu
+* @Date   : 2017/11/27
+*/
+char *toChars(String *self){
+	char *chars = (char *)malloc(sizeof(char)*(self->_size + 1));
+	memcpy(chars, self->_mem, self->_size + 1);
+	self->_relative->addObject(self->_relative, chars, free, NULL, NULL);
+	return chars;
 }
