@@ -4,12 +4,24 @@
 #include <stdarg.h>
 #include <String.h>
 #include <Windows.h>
-
+#include "InputStream.h"
 #include "sysser.h"
 #include "winser.h"
 #include "Vector.h"
 
 #define MESSAGE_MAX_LENGTH 8192
+
+InputStream *getStdInputStream(){
+	return newInputStream(GetStdHandle(STD_INPUT_HANDLE));
+}
+
+OutputStream *getStdOutputStream(){
+	return newOutputStream(GetStdHandle(STD_OUTPUT_HANDLE));
+}
+
+OutputStream *getStdErrorStream(){
+	return  newOutputStream(GetStdHandle(STD_ERROR_HANDLE));
+}
 
 /*
  * @Desc  : 包装fun的输入输出。传入的可变参数封装为Vector，再传给被包装的函数fun。需要注意的是Vector会在该函数返回前被销毁掉。
