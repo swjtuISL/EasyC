@@ -38,7 +38,7 @@ void freeContainer(Container *container){
 	for (int i = 0; i < container->_size; i++){
 		freeObject(container->objs[i]);
 	}
-	freeObject(container->objs);
+	free(container->objs);
 	free(container);
 }
 

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <Windows.h>
 #include <memory.h>
+#include "Vector.h"
 #include "Object.h"
 
 static void * defaultItemCopy(void *item);
@@ -31,6 +32,7 @@ Object *newObject(void *item,
 	Object *obj = (Object *)malloc(sizeof(Object));
 	ZeroMemory(obj, sizeof(Object));
 	obj->item = item;
+	obj->_relative = newVector();
 	// load function
 	obj->copy = copy;
 	obj->toString = toString;
@@ -98,6 +100,7 @@ Object *simpleObject(void *item){
 * @Date   : 2017/11/27
 */
 void freeObject(Object *obj){
+	freeVector(obj->_relative);
 	if (obj->itemFree){
 		obj->itemFree(obj->item);
 	}
@@ -197,7 +200,9 @@ static String * charsToString(void *item){
 * @Date   : 2017/11/30
 */
 static String * toString(Object *self){
-	return self->itemToString(self->item);
+	String *s = self->itemToString(self->item);
+	self->_relative->addObject(self->_relative, s, freeString, NULL, NULL);
+	return s;
 }
 
 

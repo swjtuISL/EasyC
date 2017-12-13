@@ -134,6 +134,7 @@ void freeMatrix(Matrix * const mat){
 		}
 		free(mat->_mem[i]);
 	}
+	free(mat->_mem);
 	free(mat);
 }
 
@@ -320,7 +321,6 @@ String *toString(Matrix *self){
 		for (int j = 0; j < self->_cols; j++){
 			String *part = self->_mem[i][j]->toString(self->_mem[i][j]);
 			s->appendString(s, part)->append(s, ", ");
-			freeString(part);
 		}
 		s->append(s, "\n");
 	}

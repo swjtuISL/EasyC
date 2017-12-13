@@ -610,7 +610,6 @@ static String *toString(Vector *const self){
 	for (int i = 0; i < self->_size; i++){
 		String *part = (Object *)self->_mem[i]->toString(self->_mem[i]);
 		s->appendString(s, part)->append(s, ", ");
-		freeString(part);
 	}
 	if (self->_relative == NULL){
 		self->_relative = newVector();

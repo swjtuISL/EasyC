@@ -325,7 +325,6 @@ String * toString(HashMap * const self){
 			String *tmp = node->obj->toString(node->obj);
 			s->append(s, "[")->append(s, node->key)->append(s, "=")
 				->appendString(s, tmp)->append(s, "],");
-			freeString(tmp);
 		}
 	}
 	self->_relative->addObject(self->_relative, s, freeString, NULL, NULL);

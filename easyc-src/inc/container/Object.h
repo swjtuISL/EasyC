@@ -3,9 +3,10 @@
 
 struct Object;
 struct String;
-
+struct Vector;
 typedef struct String String;
 typedef struct Object Object;
+typedef struct Vector Vector;
 
 Object *newObject(void *item, void(*freeMethod)(void *item), String *(*itemToString)(void *item), void*(*itemCopy)(void *item));
 Object *newIntObject(int val);
@@ -21,6 +22,7 @@ void freeObject(Object *obj);
 */
 struct Object{
 	void *item;
+	Vector *_relative;
 	Object*(*copy)(Object *self);
 	String *(*toString)(Object *self);
 
