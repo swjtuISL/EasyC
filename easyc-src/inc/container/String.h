@@ -9,6 +9,7 @@ typedef struct Vector Vector;
 String *newString(char * chars);
 void freeString(String *s);
 char *toChars(String *self);
+char *toCharsN(String *self);
 int toInt(String *self);									// 【未实现】
 double toFloat(String *self);								// 【未实现】
 
@@ -20,7 +21,7 @@ double toFloat(String *self);								// 【未实现】
 struct String{
 	char *_mem;				// 字符保存区域, 包括结尾符
 	int _capacity;
-	int _loadFactor;
+	float _loadFactor;
 	int _size;				// 不包含结尾符的字符个数
 	Vector *_relative;
 

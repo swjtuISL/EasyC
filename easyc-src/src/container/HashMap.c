@@ -171,10 +171,13 @@ static void putObject(HashMap * const self, void *key, Object * obj){
 			void *old = node->obj;
 			node->obj = obj;
 			freeObject(old);
+			if (self->_kfm){
+				self->_kfm(key);
+			}
 			return;
 		}
 	}
-
+	
 	KVNode * newnode = (KVNode *)malloc(sizeof(KVNode));
 	newnode->key = key;
 	newnode->obj = obj;
@@ -291,14 +294,13 @@ static void resize(HashMap * const self){
 	// 新的桶和桶大小
 	int newBucketsLength = self->_bucketsLength * 2;
 	KVNode **newBuckets = (KVNode **)malloc(sizeof(KVNode *)*newBucketsLength);
-	for (int i = 0; i < newBucketsLength; i++){
-		newBuckets = NULL;
-	}
+	ZeroMemory(newBuckets, sizeof(KVNode *)*newBucketsLength);
 	// 旧桶节点移动到新桶
 	for (int i = 0; i < self->_bucketsLength; i++){
 		KVNode *tmpnode = NULL;
-		for (KVNode *node = self->_buckets[i]; node != NULL; node = tmpnode->next){
-			int idx = self->_hash(node->key) % newBucketsLength;
+		for (KVNode *node = self->_buckets[i]; node != NULL; node = tmpnode){
+			unsigned long keyhash = self->_hash(node->key);
+			int idx = keyhash % newBucketsLength;
 			KVNode * bucketop = newBuckets[idx];
 			tmpnode = node->next;
 			node->next = bucketop;

@@ -38,6 +38,7 @@ String *newString(char * chars){
 	}
 	String *s = (String *)malloc(sizeof(String));
 	ZeroMemory(s, sizeof(String));
+
 	int charsLength = lstrlen(chars)+1;					// 算上结尾符的长度
 	int nextLength = 1 << ((int)log2(charsLength)+1);
 	s->_loadFactor = DEFAULT_LOAD_FACTOR;
@@ -250,5 +251,11 @@ char *toChars(String *self){
 	char *chars = (char *)malloc(sizeof(char)*(self->_size + 1));
 	memcpy(chars, self->_mem, self->_size + 1);
 	self->_relative->addObject(self->_relative, chars, free, NULL, NULL);
+	return chars;
+}
+
+char *toCharsN(String *self){
+	char *chars = (char *)malloc(sizeof(char)*(self->_size + 1));
+	memcpy(chars, self->_mem, self->_size + 1);
 	return chars;
 }
