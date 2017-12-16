@@ -12,6 +12,7 @@ static String *nextLine(Scanner *self);
 static int nextInt(Scanner *Self);
 static double nextFloat(Scanner *Self);
 static int readFromBuffer(Scanner *scanner, unsigned char *rcv, int maxLength);
+static int hasNext(Scanner *self);
 
 Scanner * newScanner(InputStream *is){
 	Scanner *scanner = malloc(sizeof(Scanner));
@@ -23,6 +24,7 @@ Scanner * newScanner(InputStream *is){
 	scanner->nextLine = nextLine;
 	scanner->nextInt = nextInt;
 	scanner->nextFloat = nextFloat;
+	scanner->hasNext = hasNext;
 
 	return scanner;
 }
@@ -30,6 +32,21 @@ Scanner * newScanner(InputStream *is){
 void freeScanner(Scanner *scanner){
 	freeInputStream(scanner->_is);
 	free(scanner);
+}
+
+static int hasNext(Scanner *self){
+	InputStream *is = self->_is;
+	int unread = self->_bufferSize - self->_bufferPtr;		// 可读的大小
+	if (unread <= 0){
+		self->_bufferSize = is->read(is, self->_buffer, SCANNER_BUFFER_SIZE);
+		if (self->_bufferSize > 0){
+			return 1;
+		}
+		else{
+			return 0;
+		}
+	}
+	return 1;
 }
 
 static String *next(Scanner *self){

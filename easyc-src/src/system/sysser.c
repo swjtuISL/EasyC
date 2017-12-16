@@ -11,6 +11,15 @@
 
 #define MESSAGE_MAX_LENGTH 8192
 
+String *getExeDir(){
+	TCHAR exePath[255];
+	GetModuleFileName(NULL, exePath, MAX_PATH); 
+	TCHAR *pLastSlash = strrchr(exePath, '//');
+	pLastSlash = pLastSlash == NULL ? strrchr(exePath, '\\') : pLastSlash;
+	exePath[pLastSlash - exePath] = '\0';
+	return newString(exePath);
+}
+
 InputStream *getStdInputStream(){
 	return newInputStream(GetStdHandle(STD_INPUT_HANDLE));
 }

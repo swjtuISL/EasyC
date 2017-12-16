@@ -20,6 +20,7 @@ struct Scanner{
 	int _bufferSize;
 
 	// public (interface)
+	int(*hasNext)(Scanner *self);
 	String *(*next)(Scanner *self);
 	String *(*nextLine)(Scanner *self);
 	int (*nextInt)(Scanner *self);

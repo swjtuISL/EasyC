@@ -15,6 +15,7 @@ typedef struct OutputStream OutputStream;
 InputStream *getStdInputStream();
 OutputStream *getStdOutputStream();
 OutputStream *getStdErrorStream();
+String *getExeDir();
 void * funWrapperInts(void *(*fun)(Vector *vector), int length, ...);
 void * funWrapperPtrs(void *(*fun)(Vector *vector), int length, ...);
 void reportError(char* userMessage, unsigned long exitCode);
